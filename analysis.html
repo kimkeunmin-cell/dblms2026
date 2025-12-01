@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>학습 시간 분석</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+<h2>학습 시간 분석</h2>
+
+<div>
+  시작일: <input id="fromDate" type="date">
+  종료일: <input id="toDate" type="date">
+  <button id="runAnalysisBtn">분석 실행</button>
+</div>
+
+<p id="summaryText"></p>
+
+<canvas id="sleepChart" width="400" height="200"></canvas>
+<canvas id="allChart" width="400" height="200"></canvas>
+
+<script>
+// 간단 버전 차트
+const sleepChart = new Chart(document.getElementById('sleepChart'), {
+  type: 'line',
+  data: { labels: [], datasets: [
+    { label:'낮잠', data:[] },
+    { label:'밤잠', data:[] }
+  ]}
+});
+const allChart = new Chart(document.getElementById('allChart'), {
+  type: 'line',
+  data: { labels: [], datasets: [
+    { label:'국어', data:[] },
+    { label:'수학', data:[] },
+    { label:'영어', data:[] },
+    { label:'통사', data:[] },
+    { label:'통과', data:[] }
+  ]}
+});
+
+// CSV 파싱
+function normalize(h){return h.replace(/\s+/g,'').replace(/\n/g,'')}
+
+function num(v){let n=parseFloat(String(v).replace(/[^0-9\.]/g,''));return isNaN(n)?0:n;}
+
+document.getElementById('runAnalysisBtn').onclick = async () => {
+  const from = document.getElementById('fromDate').value;
+  const to = document.getElementById('toDate').value;
+  if(!from || !to){ alert('날짜 입력'); return; }
+
+  const params = new URLSearchParams(location.search);
+  const csvUrl = params.get('csv');
+  if(!csvUrl){ alert('CSV URL 없음'); return;}
+
+  Papa.parse(csvUrl, {
+    download:true,
+    header:true,
+    complete: res=>{
+      const rows = res.data;
+
+      const f = new Date(from); const t=new Date(to); t.setHours(23,59,59);
+      const filtered = rows.filter(r=>{
+        let d=new Date(r['일시']);
+        return d>=f && d<=t;
+      });
+
+      const labels=[], nap=[], night=[], guk=[], math=[], eng=[], ts=[], tc=[];
+
+      filtered.forEach(r=>{
+        const d=new Date(r['일시']);
+        labels.push(`${d.getMonth()+1}-${d.getDate()}`);
+        nap.push(num(r['낮잠(시간)']));
+        night.push(num(r['밤잠(시간)']));
+        guk.push(num(r['국어합(시간)']));
+        math.push(num(r['수학합(시간)']));
+        eng.push(num(r['영어합(시간)']));
+        ts.push(num(r['통사(시간)']));
+        tc.push(num(r['통과(시간)']));
+      });
+
+      sleepChart.data.labels = labels;
+      sleepChart.data.datasets[0].data = nap;
+      sleepChart.data.datasets[1].data = night;
+      sleepChart.update();
+
+      allChart.data.labels = labels;
+      allChart.data.datasets[0].data = guk;
+      allChart.data.datasets[1].data = math;
+      allChart.data.datasets[2].data = eng;
+      allChart.data.datasets[3].data = ts;
+      allChart.data.datasets[4].data = tc;
+      allChart.update();
+
+      const total = eng.reduce((a,b)=>a+b,0)+guk.reduce((a,b)=>a+b,0)+math.reduce((a,b)=>a+b,0)
+      document.getElementById('summaryText').innerText = `총 학습량: ${total.toFixed(1)}h`;
+    }
+  });
+};
+</script>
+
+</body>
+</html>
