@@ -69,20 +69,20 @@ def student_page():
         else:
             st.markdown(f"<a href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>", unsafe_allow_html=True)
 
-        # CSV 컬럼 후보 확인 기능 추가
+        # CSV를 DataFrame으로 보여주기
         st.markdown("---")
-        st.subheader("CSV 컬럼 후보 확인")
+        st.subheader("CSV 데이터 확인")
         try:
             csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
-            df_sample = pd.read_csv(csv_url, engine='python', on_bad_lines='skip', nrows=5)
-            df_sample.columns = df_sample.columns.str.strip().str.replace('\r','')
-
-            st.write("CSV 컬럼 후보:")
-            st.write(df_sample.columns.tolist())
-            st.write("샘플 데이터:")
-            st.dataframe(df_sample)
+            df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
+            # 컬럼 이름 정리
+            df_csv.columns = df_csv.columns.str.strip().str.replace('\r','').str.replace('\n','').str.replace(' ','_')
+            st.write("상위 10행 샘플 데이터")
+            st.dataframe(df_csv.head(10))
+            st.write("컬럼 목록")
+            st.write(df_csv.columns.tolist())
         except Exception as e:
-            st.warning(f"CSV 읽기 실패: {e}")
+            st.warning(f"CSV 로드 실패: {e}")
 
     else:
         st.warning("해당 학생의 시트 정보가 없습니다.")
