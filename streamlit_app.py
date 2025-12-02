@@ -32,13 +32,14 @@ def login_page():
     user_id = st.text_input("아이디", value="")
     user_pw = st.text_input("비밀번호", value="", type="password")
 
-    if st.button("로그인"):
+    login_clicked = st.button("로그인")
+    if login_clicked:
         user = check_login(user_id, user_pw)
         if user is not None:
             st.session_state['logged_in'] = True
             st.session_state['user_id'] = user_id
             st.session_state['role'] = user.get('role', 'student')
-            st.experimental_rerun()
+            st.experimental_rerun()  # 버튼 클릭 시 안전하게 호출
         else:
             st.error("아이디 또는 비밀번호가 잘못되었습니다.")
 
