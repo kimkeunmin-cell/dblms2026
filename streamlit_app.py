@@ -39,7 +39,7 @@ def login_page():
             st.session_state['logged_in'] = True
             st.session_state['user_id'] = user_id
             st.session_state['role'] = user.get('role', 'student')
-            st.experimental_rerun()  # 버튼 클릭 시 안전하게 호출
+            st.experimental_rerun()
         else:
             st.error("아이디 또는 비밀번호가 잘못되었습니다.")
 
@@ -57,7 +57,7 @@ def student_page():
     except Exception as e:
         st.warning(f"sheets.csv 읽기 실패: {e}")
 
-    # 환경 선택
+    # 환경 선택 및 구글 시트 표시
     if sheet_url:
         device = st.radio("PC 또는 모바일", ["PC", "모바일"])
         if device == "PC":
@@ -69,57 +69,23 @@ def student_page():
         else:
             st.markdown(f"<a href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>", unsafe_allow_html=True)
 
-    else:
-        st.warning("해당 학생의 시트 정보가 없습니다.")
-
-    # 통계 및 시각화
-    data_df = None
-    if sheet_url:
+        # CSV 컬럼 후보 확인 기능 추가
+        st.markdown("---")
+        st.subheader("CSV 컬럼 후보 확인")
         try:
             csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
-            data_df = pd.read_csv(csv_url, engine='python', on_bad_lines='skip', header=0)
-            data_df.columns = data_df.columns.str.strip().str.replace('\r','')
-            if '일시' in data_df.columns:
-                data_df['일시'] = pd.to_datetime(data_df['일시'], errors='coerce')
-            else:
-                st.warning(f"CSV 컬럼 확인 필요: {data_df.columns.tolist()}")
-                data_df = None
+            df_sample = pd.read_csv(csv_url, engine='python', on_bad_lines='skip', nrows=5)
+            df_sample.columns = df_sample.columns.str.strip().str.replace('\r','')
+
+            st.write("CSV 컬럼 후보:")
+            st.write(df_sample.columns.tolist())
+            st.write("샘플 데이터:")
+            st.dataframe(df_sample)
         except Exception as e:
-            st.warning(f"CSV 로드 실패: {e}")
-            data_df = None
+            st.warning(f"CSV 읽기 실패: {e}")
 
-    if data_df is not None:
-        st.write("### 분석 기간 및 변수 선택")
-        start_date, end_date = st.date_input("기간 선택", [data_df['일시'].min(), data_df['일시'].max()])
-        selected_cols = st.multiselect("분석할 변수 선택", options=ANALYSIS_COLUMNS, default=ANALYSIS_COLUMNS)
-
-        mask = (data_df['일시'] >= pd.to_datetime(start_date)) & (data_df['일시'] <= pd.to_datetime(end_date))
-        filtered_df = data_df.loc[mask]
-
-        if not filtered_df.empty:
-            fig = go.Figure()
-            for col in selected_cols:
-                fig.add_trace(go.Bar(
-                    y=filtered_df['일시'].dt.strftime('%Y-%m-%d'),
-                    x=filtered_df[col],
-                    name=col,
-                    orientation='h'
-                ))
-            fig.update_layout(barmode='stack', title='가로형 누적 막대그래프', xaxis_title='시간', yaxis_title='일시', height=500)
-            st.plotly_chart(fig, use_container_width=True)
-
-            # 목표값 비교 그래프
-            goal_df = pd.read_csv(csv_url, engine='python', quotechar='"', nrows=2, on_bad_lines='skip', header=None)
-            goals = pd.to_numeric(goal_df.iloc[1, 1:], errors='coerce')
-            means = filtered_df[selected_cols].mean()
-
-            fig2 = go.Figure()
-            fig2.add_trace(go.Bar(x=selected_cols, y=means, name='실제 평균', marker_color='skyblue'))
-            fig2.add_trace(go.Scatter(x=selected_cols, y=goals, mode='lines+markers', name='목표', line=dict(color='red', dash='dash')))
-            fig2.update_layout(title='목표 대비 평균', yaxis_title='시간', height=400)
-            st.plotly_chart(fig2, use_container_width=True)
-        else:
-            st.info("선택된 기간에 데이터가 없습니다.")
+    else:
+        st.warning("해당 학생의 시트 정보가 없습니다.")
 
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
