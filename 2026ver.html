@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공부시간 통계&시각화</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F8F9FA;
+            --text-color: #212529;
+            --primary-color: #4A90E2;
+            --secondary-color: #50E3C2;
+            --card-bg: #FFFFFF;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 350px;
+            width: 100%;
+            max-width: 500px;
+        }
+        @media screen and (max-width: 768px) {
+            .timeline::after { left: 31px; }
+            .timeline-container { width: 100%; padding-left: 70px; padding-right: 25px; }
+            .timeline-container.right { left: 0%; }
+            .timeline-container.left::after, .timeline-container.right::after { left: 18px; }
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .flow-step {
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+        .flow-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-gray-800 text-white text-center py-16 px-4">
+        <h1 class="text-4xl md:text-5xl font-black mb-3">
+		<p>
+		30600 김건민
+		</p>
+		<p>
+		(2025-06-19~2025-06-25)
+		</p>
+		하루 평균 10.8시간 공부
+		</h1>
+        <h1 class="text-lg md:text-xl font-light max-w-3xl mx-auto">
+		<p>
+		지난 한 주 동안의 국어·수학·영어·탐구 공부시간을 되짚어 보고,
+		</p>
+		앞으로는 어떻게 양과 균형을 조절하며 학습할지 스스로 성찰해 보세요.</h1>
+    </header>
+
+    <nav class="sticky top-0 bg-white / 60 backdrop-blur-sm shadow-md z-20 py-3">
+        <div class="container mx-auto flex justify-center items-center space-x-4-y-6">
+            <a href="#sleep&all" class="nav-button font-bold py-2 px-4 rounded-full text-gray-700 hover:bg-gray-200">수면&공부(종합)</a>
+            <a href="#gug" class="nav-button font-bold py-2 px-4 rounded-full text-gray-700 hover:bg-gray-200">국어 상세 분석</a>
+            <a href="#su" class="nav-button font-bold py-2 px-4 rounded-full text-gray-700 hover:bg-gray-200">수학 상세 분석</a>
+            <a href="#eng" class="nav-button font-bold py-2 px-4 rounded-full text-gray-700 hover:bg-gray-200">영어 상세 분석</a>
+            <a href="#tam" class="nav-button font-bold py-2 px-4 rounded-full text-gray-700 hover:bg-gray-200">탐구 상세 분석</a>
+            <a href="#top7" class="nav-button font-bold py-2 px-4 rounded-full text-gray-700 hover:bg-gray-200">상위 7명의 시간</a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <section id="sleep&all" class="my-16 scroll-mt-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">수면&공부(종합)</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600">충분한 수면 시간으로 체력 관리를 하고, 여러 과목을 자신의 상황에 맞게 골고루 많이 하는 것이 학습을 하는 정도(正道)입니다.</p>
+            </div>
+            
+            </div>
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">수면 시간</h3>
+                <h4 class="text-center text-gray-600 mb-4"><p>밤에 6시간 이상, 하루에 7시간 이상 충분히 자고</p>낮에 충실하게 공부하는 것이 바람직합니다.</h4>
+                <h5 class="text-center text-gray-600 mb-4">
+				<p>낮잠 : 평균 0.1(시간) vs 목표 0.0(시간)</p>
+				<p>밤잠 : 평균 6.0(시간) vs 목표 6.8(시간)</p>
+				수면 : 평균 6.2(시간) vs 목표 6.8(시간)</h5>
+				</div>
+                <div class="chart-container">
+                    <canvas id="sleepChart"></canvas>
+                </div>
+            </div>
+			
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">공부 시간(종합)</h3>
+                <h4 class="text-center text-gray-600 mb-4">1일 평균 8.5시간 이상 해냅시다.</h4>
+                <h5 class="text-center text-gray-600 mb-4">
+				<p>국어 : 평균 1.9(시간) vs 목표 2.8(시간)</p>
+				<p>수학 : 평균 2.1(시간) vs 목표 3.4(시간)</p>
+				<p>영어 : 평균 0.4(시간) vs 목표 0.2(시간)</p>
+				<p>탐구 : 평균 6.3(시간) vs 목표 1.3(시간)</p>
+				총합 : 10.8(시간) vs 목표 7.7(시간)</h5>
+				</div>
+                <div class="chart-container">
+                    <canvas id="allChart"></canvas>
+                </div>
+            </div>
+        </section>
+		
+        <hr class="my-20 border-t-2 border-gray-200">
+        <section id="gug" class="my-16 scroll-mt-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">국어 상세 분석</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600">문학, 비문학(독서), 화작&언매의 균형을 잡읍시다.</p>
+            </div>
+            
+            </div>
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">공부 시간</h3>
+                <h4 class="text-center text-gray-600 mb-4">약점인 부분을 더 해야 합니다.</h4>
+                <h5 class="text-center text-gray-600 mb-4">
+				<p>문학 : 평균 0.9(시간) vs 목표 1.0(시간)</p>
+				<p>비문학 : 평균 1.1(시간) vs 목표 1.0(시간)</p>
+				<p>화언 : 평균 0.0(시간) vs 목표 0.8(시간)</p>
+				총합 : 1.9(시간) vs 목표 2.8(시간)</h5>
+				</div>
+                <div class="chart-container">
+                    <canvas id="gugChart"></canvas>
+                </div>
+            </div>
+			
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">목표vs실천</h3>
+                <h4 class="text-center text-gray-600 mb-4">
+				<p>[내부 : 목표 vs 외부 : 실천]</p>
+				균형 있게 한 주를 보내도록 신경씁시다.</h4>
+				</div>
+                <div class="chart-container">
+                    <canvas id="gugpie"></canvas>
+                </div>
+            </div>
+			</section>
+			
+        <hr class="my-20 border-t-2 border-gray-200">
+        <section id="su" class="my-16 scroll-mt-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">수학 상세 분석</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600">대수, 미적분1, 확률과통계의 균형을 잡읍시다.</p>
+            </div>
+            
+            </div>
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">공부 시간</h3>
+                <h4 class="text-center text-gray-600 mb-4">약점인 부분을 더 해야 합니다.</h4>
+                <h5 class="text-center text-gray-600 mb-4">
+				<p>대수 : 평균 0.0(시간) vs 목표 0.9(시간)</p>
+				<p>미적 : 평균 0.1(시간) vs 목표 1.0(시간)</p>
+				<p>확통 : 평균 2.0(시간) vs 목표 1.5(시간)</p>
+				총합 : 2.1(시간) vs 목표 3.4(시간)</h5>
+				</div>
+                <div class="chart-container">
+                    <canvas id="suChart"></canvas>
+                </div>
+            </div>
+			
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">목표vs실천</h3>
+                <h4 class="text-center text-gray-600 mb-4">
+				<p>[내부 : 목표 vs 외부 : 실천]</p>
+				균형 있게 한 주를 보내도록 신경씁시다.</h4>
+				</div>
+                <div class="chart-container">
+                    <canvas id="supie"></canvas>
+                </div>
+            </div>
+			
+        </section>
+
+        <hr class="my-20 border-t-2 border-gray-200">
+        <section id="eng" class="my-16 scroll-mt-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">영어 상세 분석</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600">어휘, 듣기, 문법, 독해의 균형을 잡읍시다.</p>
+            </div>
+            
+            </div>
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">공부 시간</h3>
+                <h4 class="text-center text-gray-600 mb-4">영어를 소홀히 해선 안 됩니다.</h4>
+                <h5 class="text-center text-gray-600 mb-4">
+				<p>어휘 : 평균 0.0(시간) vs 목표 0.0(시간)</p>
+				<p>듣기 : 평균 0.0(시간) vs 목표 0.0(시간)</p>
+				<p>문법 : 평균 0.0(시간) vs 목표 0.0(시간)</p>
+				<p>독해 : 평균 0.4(시간) vs 목표 0.2(시간)</p>
+				총합 : 0.4(시간) vs 목표 0.2(시간)</h5>
+				</div>
+                <div class="chart-container">
+                    <canvas id="engChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">목표vs실천</h3>
+                <h4 class="text-center text-gray-600 mb-4">
+				<p>[내부 : 목표 vs 외부 : 실천]</p>
+				균형 있게 한 주를 보내도록 신경씁시다.</h4>
+				</div>
+                <div class="chart-container">
+                    <canvas id="engpie"></canvas>
+                </div>
+            </div>
+			
+        </section>
+
+        <hr class="my-20 border-t-2 border-gray-200">
+        <section id="tam" class="my-16 scroll-mt-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">탐구 상세 분석</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600">두 과목 모두 골고루 하도록 합시다.</p>
+            </div>
+            
+            </div>
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">공부 시간</h3>
+                <h4 class="text-center text-gray-600 mb-4">영어를 소홀히 해선 안 됩니다.</h4>
+                <h5 class="text-center text-gray-600 mb-4">
+				<p>일탐구 : 평균 2.8(시간) vs 목표 0.7(시간)</p>
+				<p>이탐구 : 평균 3.5(시간) vs 목표 0.7(시간)</p>
+				총합 : 6.3(시간) vs 목표 1.3(시간)</h5>
+				</div>
+                <div class="chart-container">
+                    <canvas id="tamChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+				<div class="text-center mb-3 mt-3">
+                <h3 class="text-2xl font-bold" style="color: var(--primary-color);">목표vs실천</h3>
+                <h4 class="text-center text-gray-600 mb-4">
+				<p>[내부 : 목표 vs 외부 : 실천]</p>
+				균형 있게 한 주를 보내도록 신경씁시다.</h4>
+				</div>
+                <div class="chart-container">
+                    <canvas id="tampie"></canvas>
+                </div>
+            </div>
+			
+        </section>
+
+        <section id="top7" class="my-16 scroll-mt-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">상위 7명의 시간</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-600">이번 주에 가장 많이 공부한 상위 7명의 공부 시간입니다. (단위 : 시간)</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                 <h1 class="text-center text-gray-600 mb-8">
+				 <p>일정하게 열심히 하는 것이 중요합니다.</p>
+				 짧은 기간 너무 많이 하면 지쳐서 오히려 더 쉬게 될 수 있으니 주의합시다.</h1>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="top7Chart"></canvas>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center p-8 mt-16">
+        <p>본 자료는 휘문고등학교 데이터 기반 학습 관리 시스템 참여자를 위해 제작되었습니다.</p>
+        <p class="text-sm text-white-400 mt-2">제작자 : 휘문고 김건민T</p>
+    </footer>
+
+    <script>
+        const wrapLabel = (label, maxLength = 16) => {
+            if (typeof label !== 'string' || label.length <= maxLength) return label;
+            const words = label.split(' ');
+            let lines = [];
+            let currentLine = '';
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).trim().length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = (currentLine + ' ' + word).trim();
+                }
+            });
+            if (currentLine) lines.push(currentLine.trim());
+            return lines;
+        };
+        
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            return Array.isArray(label) ? label.join(' ') : label;
+        };
+
+        const commonChartOptions = {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { color: '#333', font: { size: 14 } }
+                },
+                tooltip: {
+                    callbacks: { title: tooltipTitleCallback }
+                }
+            }
+        };
+
+	  const ctx0 = document.getElementById('sleepChart');
+	  new Chart(ctx0, {type: 'bar',
+				data: {labels: ['06-19', '06-20', '06-21', '06-22', '06-23', '06-24', '06-25'],
+				datasets: [{label: '낮잠',
+                            backgroundColor: 'rgb(255, 99, 132, 0.75)',
+                            borderColor: 'rgb(255, 99, 132, 0.6)',
+							lineTension : 0.2,
+                            pointRadius : 4,
+                            data: [0, 0, 0, 0, 0, 0, 1]},
+						   {label: '밤잠',
+						    fill : false,
+						    lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(54, 162, 235, 0.75)',
+                            borderColor: 'rgb(54, 162, 235, 0.6)',
+                            data: [6.0, 5.67, 8.83, 6.0, 5.0, 5.5, 5.17]}]},
+		        options: {...commonChartOptions,
+						  scales : { x:{stacked : true}, y:{stacked:true}},
+						  indexAxis : 'y',
+						  plugins: {legend: {display: true},
+		                  tooltip: {enabled:true}}}});
+
+	  const ctx1 = document.getElementById('allChart');
+	  new Chart(ctx1, {type: 'bar',
+				data: {labels: ['06-19', '06-20', '06-21', '06-22', '06-23', '06-24', '06-25'],
+				datasets: [{label: '국어',
+                            backgroundColor: 'rgb(255, 99, 132, 0.75)',
+                            borderColor: 'rgb(255, 99, 132, 0.6)',
+							lineTension : 0.2,
+                            pointRadius : 4,
+                            data: [2.02, 2.02, 1.03, 1.68, 1.03, 2.7, 3.02]},
+						   {label: '수학',
+						    fill : false,
+						    lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(255, 159, 64, 0.75)',
+                            borderColor: 'rgb(255, 159, 64, 0.6)',
+                            data: [3.13, 1.52, 3.03, 3.03, 0.53, 2.53, 1.03]},
+						   {label: '영어',
+                            fill : false,
+                            lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(75, 192, 192, 0.75)',
+                            borderColor: 'rgb(75, 192, 192, 0.6)',
+                            data: [0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 2.45]},
+			               {label: '일탐구',
+                            fill : false,
+                            lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(54, 162, 235, 0.75)',
+                            borderColor: 'rgb(54, 162, 235, 0.6)',
+                            data: [1.67, 1.5, 4.5, 3.58, 3.0, 3.17, 2.17]},
+						   {label: '이탐구',
+                            fill : false,
+                            lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(153, 102, 255, 0.75)',
+                            borderColor: 'rgb(153, 102, 255, 0.6)',
+                            data: [4.5, 1.5, 4.0, 4.5, 5.5, 2.57, 2.07]}]},
+		        options: {...commonChartOptions,
+						  scales : { x:{stacked : true}, y:{stacked:true}},
+						  indexAxis : 'y',
+						  plugins: {legend: {display: true},
+		                  tooltip: {enabled:true}}}});
+
+	  const ctx3 = document.getElementById('gugChart');
+	  new Chart(ctx3, {type: 'bar',
+				data: {labels: ['06-19', '06-20', '06-21', '06-22', '06-23', '06-24', '06-25'],
+				datasets: [{label: '문학',
+                            backgroundColor: 'rgb(255, 99, 132, 0.75)',
+                            borderColor: 'rgb(255, 99, 132, 0.6)',
+							lineTension : 0.2,
+                            pointRadius : 4,
+                            data: [0.33, 1.0, 0.02, 1.0, 0.02, 2.67, 1.0]},
+						   {label: '비문학',
+						    fill : false,
+						    lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(255, 159, 64, 0.75)',
+                            borderColor: 'rgb(255, 159, 64, 0.6)',
+                            data: [1.67, 1.0, 1.0, 0.67, 1.0, 0.02, 2.0]},
+						   {label: '선택',
+                            fill : false,
+                            lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(75, 192, 192, 0.75)',
+                            borderColor: 'rgb(75, 192, 192, 0.6)',
+                            data: [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]}]},
+		        options: {...commonChartOptions,
+						  scales : { x:{stacked : true}, y:{stacked:true}},
+						  indexAxis : 'y',
+						  plugins: {legend: {display: true},
+		                  tooltip: {enabled:true}}}});
+						  
+	  const ctx8 = document.getElementById('gugpie');
+	  new Chart(ctx8, {type: 'pie',
+				data: {labels: ['문학','비문학','선택'],
+				datasets: [{label: '실천 ',
+							color : 'red',
+                            backgroundColor: ['rgb(255, 99, 132, 0.6)','rgb(255, 159, 64, 0.6)','rgb(75, 192, 192, 0.6)'],
+                            borderColor: 'rgb(255, 255, 255)',
+							lineTension : 0.2,
+                            data: [(0.9), (1.1), (0.0)]},
+							{label: '목표 ',
+                            fill : true,
+                            lineTension : 0.2,
+                            pointRadius : 5,
+                            backgroundColor: ['rgb(255, 99, 132, 0.6)','rgb(255, 159, 64, 0.6)','rgb(75, 192, 192, 0.6)'],
+                            borderColor: 'rgb(255, 255, 255)',
+                            data: [(1.0), (1.0), (0.8)]}]},
+		        options: {...commonChartOptions,plugins: {legend: {title: {display: true}, display: true, labels: {color: 'rgb(255, 99, 132)'}}, tooltip: {enabled:true}}}});
+
+	  const ctx4 = document.getElementById('suChart');
+	  new Chart(ctx4, {type: 'bar',
+				data: {labels: ['06-19', '06-20', '06-21', '06-22', '06-23', '06-24', '06-25'],
+				datasets: [{label: '수학I',
+                            backgroundColor: 'rgb(255, 99, 132, 0.75)',
+                            borderColor: 'rgb(255, 99, 132, 0.6)',
+							lineTension : 0.2,
+                            pointRadius : 4,
+                            data: [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]},
+						   {label: '수학II',
+						    fill : false,
+						    lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(255, 159, 64, 0.75)',
+                            borderColor: 'rgb(255, 159, 64, 0.6)',
+                            data: [0.02, 0.5, 0.02, 0.02, 0.02, 0.02, 0.02]},
+						   {label: '선택',
+                            fill : false,
+                            lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(75, 192, 192, 0.75)',
+                            borderColor: 'rgb(75, 192, 192, 0.6)',
+                            data: [3.1, 1.0, 3.0, 3.0, 0.5, 2.5, 1.0]}]},
+		        options: {...commonChartOptions,
+						  scales : { x:{stacked : true}, y:{stacked:true}},
+						  indexAxis : 'y',
+						  plugins: {legend: {display: true},
+		                  tooltip: {enabled:true}}}});
+
+	  const ctx9 = document.getElementById('supie');
+	  new Chart(ctx9, {type: 'pie',
+				data: {labels: ['수학I','수학II','선택'],
+				datasets: [{label: '실천 ',
+							color : 'red',
+                            backgroundColor: ['rgb(255, 99, 132, 0.6)','rgb(255, 159, 64, 0.6)','rgb(75, 192, 192, 0.6)'],
+                            borderColor: 'rgb(255, 255, 255)',
+							lineTension : 0.2,
+                            data: [(0.0), (0.1), (2.0)]},
+							{label: '목표 ',
+                            fill : true,
+                            lineTension : 0.2,
+                            pointRadius : 5,
+                            backgroundColor: ['rgb(255, 99, 132, 0.6)','rgb(255, 159, 64, 0.6)','rgb(75, 192, 192, 0.6)'],
+                            borderColor: 'rgb(255, 255, 255)',
+                            data: [(0.9), (1.0), (1.5)]}]},
+		        options: {...commonChartOptions,plugins: {legend: {title: {display: true}, display: true, labels: {color: 'rgb(255, 99, 132)'}}, tooltip: {enabled:true}}}});
+
+	  const ctx5 = document.getElementById('engChart');
+	  new Chart(ctx5, {type: 'bar',
+				data: {labels: ['06-19', '06-20', '06-21', '06-22', '06-23', '06-24', '06-25'],
+				datasets: [{label: '어휘',
+                            backgroundColor: 'rgb(255, 99, 132, 0.75)',
+                            borderColor: 'rgb(255, 99, 132, 0.6)',
+							lineTension : 0.2,
+                            pointRadius : 4,
+                            data: [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]},
+						   {label: '듣기',
+						    fill : false,
+						    lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(255, 159, 64, 0.75)',
+                            borderColor: 'rgb(255, 159, 64, 0.6)',
+                            data: [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]},
+						   {label: '문법',
+                            fill : false,
+                            lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(75, 192, 192, 0.75)',
+                            borderColor: 'rgb(75, 192, 192, 0.6)',
+                            data: [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]},
+			               {label: '독해',
+                            fill : false,
+                            lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(54, 162, 235, 0.75)',
+                            borderColor: 'rgb(54, 162, 235, 0.6)',
+                            data: [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 2.4]}]},
+		        options: {...commonChartOptions,
+						  scales : { x:{stacked : true}, y:{stacked:true}},
+						  indexAxis : 'y',
+						  plugins: {legend: {display: true},
+		                  tooltip: {enabled:true}}}});
+
+	  const ctx10 = document.getElementById('engpie');
+	  new Chart(ctx10, {type: 'pie',
+				data: {labels: ['어휘','듣기', '문법', '독해'],
+				datasets: [{label: '실천 ',
+							color : 'red',
+                            backgroundColor: ['rgb(255, 99, 132, 0.6)','rgb(255, 159, 64, 0.6)','rgb(75, 192, 192, 0.6)','rgb(54, 162, 235, 0.6)'],
+                            borderColor: 'rgb(255, 255, 255)',
+							lineTension : 0.2,
+                            data: [(0.0), (0.0), (0.0), (0.4)]},
+							{label: '목표 ',
+                            fill : true,
+                            lineTension : 0.2,
+                            pointRadius : 5,
+                            backgroundColor: ['rgb(255, 99, 132, 0.6)','rgb(255, 159, 64, 0.6)','rgb(75, 192, 192, 0.6)','rgb(54, 162, 235, 0.6)'],
+                            borderColor: 'rgb(255, 255, 255)',
+                            data: [(0.0), (0.0), (0.0), (0.2)]}]},
+		        options: {...commonChartOptions,plugins: {legend: {title: {display: true}, display: true, labels: {color: 'rgb(255, 99, 132)'}}, tooltip: {enabled:true}}}});
+
+	  const ctx6 = document.getElementById('tamChart');
+	  new Chart(ctx6, {type: 'bar',
+				data: {labels: ['06-19', '06-20', '06-21', '06-22', '06-23', '06-24', '06-25'],
+				datasets: [{label: '일탐구',
+                            backgroundColor: 'rgb(255, 99, 132, 0.75)',
+                            borderColor: 'rgb(255, 99, 132, 0.6)',
+							lineTension : 0.2,
+                            pointRadius : 4,
+                            data: [1.67, 1.5, 4.5, 3.58, 3.0, 3.17, 2.17]},
+						   {label: '이탐구',
+						    fill : false,
+						    lineTension : 0.2,
+                            pointRadius : 4,
+                            backgroundColor: 'rgb(54, 162, 235, 0.75)',
+                            borderColor: 'rgb(54, 162, 235, 0.6)',
+                            data: [4.5, 1.5, 4.0, 4.5, 5.5, 2.57, 2.07]}]},
+		        options: {...commonChartOptions,
+						  scales : { x:{stacked : true}, y:{stacked:true}},
+						  indexAxis : 'y',
+						  plugins: {legend: {display: true},
+		                  tooltip: {enabled:true}}}});
+						  
+	  const ctx11 = document.getElementById('tampie');
+	  new Chart(ctx11, {type: 'pie',
+				data: {labels: ['일탐구','이탐구'],
+				datasets: [{label: '실천 ',
+                            backgroundColor: ['rgb(255, 99, 132, 0.75)', 'rgb(54, 162, 235, 0.75)'],
+                            data: [(2.8), (3.5)]},
+							{label: '목표 ',
+                            backgroundColor: ['rgb(255, 99, 132, 0.75)', 'rgb(54, 162, 235, 0.75)'],
+                            data: [(0.7), (0.7)]}]},
+		        options: {...commonChartOptions,plugins: {legend: {title: {display: true}, display: true, labels: {color: 'rgb(255, 99, 132)'}}, tooltip: {enabled:true}}}});
+
+	  const ctx13 = document.getElementById('top7Chart');
+	  new Chart(ctx13, {type: 'bar',
+						data: {labels: [['07반학생', '1위'], ['02반학생', '2위'], ['12반학생', '3위'], ['08반학생', '4위'], ['06반학생', '5위'], ['05반학생', '6위'], ['09반학생', '7위']],
+						datasets: [{label: '공부시간 ',
+									data: [(12.8), (12.5), (11.7), (11.6), (11.5), (11.4), (10.8)],
+									backgroundColor:['rgb(255,0,0,0.6)','rgb(255,50,0,0.6)','rgb(255,255,0,0.6)','rgb(0,255,0,0.6)','rgb(0,50,255,0.6)','rgb(0,0,255,0.6)', 'rgb(100,0,255,0.6)'],
+									borderWidth: 1,
+									hoverBorderWidth:2}]},
+		        options: {...commonChartOptions,plugins: {legend: {title: {display: false}, display: false, labels: {color: 'rgb(255, 99, 132)'}}, tooltip: {enabled:true}}}});
+
+    </script>
+</body>
+</html>
