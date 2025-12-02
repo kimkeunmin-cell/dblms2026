@@ -57,7 +57,6 @@ def student_page():
     except Exception as e:
         st.warning(f"sheets.csv 읽기 실패: {e}")
 
-    # 환경 선택 및 구글 시트 표시
     if sheet_url:
         device = st.radio("PC 또는 모바일", ["PC", "모바일"])
         if device == "PC":
@@ -69,18 +68,23 @@ def student_page():
         else:
             st.markdown(f"<a href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>", unsafe_allow_html=True)
 
-        # CSV를 DataFrame으로 보여주기
+        # CSV로 변환 후 DataFrame 확인
         st.markdown("---")
         st.subheader("CSV 데이터 확인")
         try:
-            csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
+            # 시트 ID 추출 및 CSV URL 생성
+            sheet_id = sheet_url.split('/d/')[1].split('/')[0]
+            csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
+
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
-            # 컬럼 이름 정리
             df_csv.columns = df_csv.columns.str.strip().str.replace('\r','').str.replace('\n','').str.replace(' ','_')
+
             st.write("상위 10행 샘플 데이터")
             st.dataframe(df_csv.head(10))
+
             st.write("컬럼 목록")
             st.write(df_csv.columns.tolist())
+
         except Exception as e:
             st.warning(f"CSV 로드 실패: {e}")
 
