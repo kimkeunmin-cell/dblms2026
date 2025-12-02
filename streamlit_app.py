@@ -95,7 +95,12 @@ def student_page():
 
         try:
             csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
-            data_df = pd.read_csv(csv_url, engine='python', quotechar='"', on_bad_lines='skip')
+            data_df = pd.read_csv(csv_url, engine='python', quotechar='"', on_bad_lines='skip', header=0)
+
+            # 컬럼 이름 공백 제거
+            data_df.columns = data_df.columns.str.strip()
+
+            # '일시' 컬럼 변환
             data_df['일시'] = pd.to_datetime(data_df['일시'], errors='coerce')
 
             # 목표값 추출 (2행)
