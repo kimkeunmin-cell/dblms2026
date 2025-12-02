@@ -52,14 +52,31 @@ def main_page():
     st.write(f"**{st.session_state['user_id']}** 님 반갑습니다.")
     st.write("원하는 버튼을 선택하세요.")
 
-    # Button 1 → Google Sheet
-    if st.button("Google Sheet 열기"):
-        st.markdown(
-            "<meta http-equiv='refresh' content='0; url=https://docs.google.com/spreadsheets/d/19G9cu2tY-Y8_KtkPgQF-b96w1ZPnumVBGT2doeOaBmo/edit?usp=drive_link'>",
-            unsafe_allow_html=True
-        )
+        # Button 1 → Google Sheet (학생별 다른 시트)
+    # 학생별 시트 매핑 CSV: sheets.csv
+    # id,sheet_url
+    try:
+        sheets_df = pd.read_csv("sheets.csv", dtype=str)
+        row = sheets_df[sheets_df['id'] == st.session_state['user_id']]
+        if not row.empty:
+            student_sheet_url = row.iloc[0]['sheet_url']
+        else:
+            student_sheet_url = None
+    except FileNotFoundError:
+        student_sheet_url = None
+        st.error("⚠️ sheets.csv 파일이 없습니다. GitHub에 업로드해주세요.")
 
-    # Button 2 → Local HTML display
+    if st.button("📄 내 Google Sheet 보기"):
+        if student_sheet_url:
+            st.components.v1.html(f"""
+                <iframe src='{student_sheet_url}' width='100%' height='800px'></iframe>
+            """, height=820, scrolling=True)
+        else:
+            st.error("해당 학생의 구글 시트 정보가 없습니다.")
+
+    st.markdown("---")
+
+    # Button 2 → Local HTML display → Local HTML display
     html_file = "2026ver.html"
     if st.button("통계 HTML 보기"):
         try:
