@@ -2,9 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import gspread
+from google.oauth2.service_account import Credentials
 
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
+SERVICE_ACCOUNT_FILE = "service_account.json"  # Google API 서비스 계정 키
 
 st.set_page_config(page_title="Login System", layout="centered")
 
@@ -87,13 +90,17 @@ def student_page():
         st.subheader("📊 학습 통계 (인터랙티브)")
 
         try:
-            csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
-            data_df = pd.read_csv(csv_url)
+            # gspread API로 구글 시트 읽기
+            creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"])
+            client = gspread.authorize(creds)
+            sheet = client.open_by_url(sheet_url).sheet1
+            records = sheet.get_all_records()  # 첫 행을 헤더로 인식
+            data_df = pd.DataFrame(records)
             data_df['date'] = pd.to_datetime(data_df['date'], errors='coerce')
 
-            # 목표값 추출 (2행)
-            goal_df = pd.read_csv(csv_url, header=None, nrows=2)
-            goals = goal_df.iloc[1, 1:]
+            # 목표값 (2행) 가져오기
+            goals_row = sheet.row_values(2)[1:]  # 첫 열 날짜 제외
+            goals = pd.to_numeric(goals_row, errors='coerce')
 
             # 사용자 입력
             st.write("### 분석 기간 및 과목 선택")
@@ -120,12 +127,12 @@ def student_page():
                 st.plotly_chart(fig, use_container_width=True)
 
                 # --------------------
-                # 목표 대비 평균 세로형 막대그래프
+                # 목표 대비 평균 세로형 막대그래프 (Plotly)
                 # --------------------
                 means = filtered_df[cols].mean()
                 fig2 = go.Figure()
                 fig2.add_trace(go.Bar(x=cols, y=means, name='실제 평균', marker_color='skyblue'))
-                fig2.add_trace(go.Scatter(x=cols, y=goals.values, mode='lines+markers', name='목표', line=dict(color='red', dash='dash')))
+                fig2.add_trace(go.Scatter(x=cols, y=goals, mode='lines+markers', name='목표', line=dict(color='red', dash='dash')))
                 fig2.update_layout(title='목표 대비 평균', yaxis_title='시간', height=400)
                 st.plotly_chart(fig2, use_container_width=True)
             else:
