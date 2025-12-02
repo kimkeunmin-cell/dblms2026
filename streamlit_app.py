@@ -1,111 +1,161 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime, timedelta
 
 # ------------------------------------------------------
-# 🔐 1) 계정 정보: accounts.csv 파일로 관리 (ID, PW)
+# CSV 파일: accounts.csv (학생 로그인), sheets.csv (학생별 구글 시트)
+# accounts.csv → id,password,role  ← 역할 추가 (student / admin)
 # ------------------------------------------------------
-# CSV 예시
-# id,password
-# 30628,두둥탁
-# 30111,abcd1234
-# 30222,qwerty
 
 ACCOUNTS_FILE = "accounts.csv"
+SHEETS_FILE = "sheets.csv"
 
 st.set_page_config(page_title="Login System", layout="centered")
 
 # ------------------------------------------------------
-# 🔑 로그인 체크 함수
+# 로그인 유효성 검사
 # ------------------------------------------------------
 def check_login(user_id, user_pw):
     try:
         df = pd.read_csv(ACCOUNTS_FILE, dtype=str)
     except FileNotFoundError:
-        st.error("⚠️ accounts.csv 파일이 없습니다. GitHub에 업로드해주세요.")
-        return False
+        st.error("⚠️ accounts.csv 파일이 없습니다.")
+        return None
 
-    match = df[(df['id'] == user_id) & (df['password'] == user_pw)]
-    return not match.empty
+    row = df[(df['id'] == user_id) & (df['password'] == user_pw)]
+    if row.empty:
+        return None
+    return row.iloc[0]  # id, password, role 포함
 
 # ------------------------------------------------------
-# 🟦 로그인 페이지
+# 사용자 역할별 페이지 라우팅
 # ------------------------------------------------------
 def login_page():
     st.title("로그인")
 
-    user_id = st.text_input("아이디", "", placeholder="아이디 입력")
-    user_pw = st.text_input("비밀번호", "", placeholder="비밀번호 입력", type="password")
+    user_id = st.text_input("아이디", "")
+    user_pw = st.text_input("비밀번호", "", type="password")
 
     if st.button("로그인"):
-        if check_login(user_id, user_pw):
+        user = check_login(user_id, user_pw)
+        if user is not None:
             st.session_state["logged_in"] = True
             st.session_state["user_id"] = user_id
+            st.session_state["role"] = user.get("role", "student")
             st.rerun()
         else:
-            st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
+            st.error("❌ 로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.")
 
 # ------------------------------------------------------
-# 🟩 메인 화면
+# 📊 데이터 기간 필터링 기능
 # ------------------------------------------------------
-def main_page():
-    st.title("메인 화면")
-    st.write(f"**{st.session_state['user_id']}** 님 반갑습니다.")
-    st.write("원하는 버튼을 선택하세요.")
+def filter_by_period(df, period):
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    today = datetime.today()
 
-        # Button 1 → Google Sheet (학생별 다른 시트)
-    # 학생별 시트 매핑 CSV: sheets.csv
-    # id,sheet_url
+    if period == "이번주":
+        start = today - timedelta(days=today.weekday())
+    elif period == "이번달":
+        start = today.replace(day=1)
+    elif period == "최근 7일":
+        start = today - timedelta(days=7)
+    else:
+        return df
+
+    return df[df['date'] >= start]
+
+# ------------------------------------------------------
+# 📱 모바일 최적화: 사이드바·버튼 크기 확장
+# ------------------------------------------------------
+def mobile_header():
+    st.markdown(
+        "<style> .stButton>button { width:100%; height:50px; font-size:20px; } </style>",
+        unsafe_allow_html=True
+    )
+
+# ------------------------------------------------------
+# 👨‍🎓 학생 메인 화면
+# ------------------------------------------------------
+def student_page():
+    mobile_header()
+    st.title("학생 페이지")
+    st.write(f"{st.session_state['user_id']}님 환영합니다.")
+
+    # 학생별 구글 시트 가져오기
     try:
-        sheets_df = pd.read_csv("sheets.csv", dtype=str)
-        row = sheets_df[sheets_df['id'] == st.session_state['user_id']]
-        if not row.empty:
-            student_sheet_url = row.iloc[0]['sheet_url']
-        else:
-            student_sheet_url = None
+        df = pd.read_csv(SHEETS_FILE, dtype=str)
+        row = df[df['id'] == st.session_state['user_id']]
+        sheet_url = row.iloc[0]['sheet_url'] if not row.empty else None
     except FileNotFoundError:
-        student_sheet_url = None
-        st.error("⚠️ sheets.csv 파일이 없습니다. GitHub에 업로드해주세요.")
+        sheet_url = None
+        st.error("⚠️ sheets.csv 파일이 없습니다.")
 
-    if st.button("📄 내 Google Sheet 보기"):
-        if student_sheet_url:
-            st.components.v1.html(f"""
-                <iframe src='{student_sheet_url}' width='100%' height='800px'></iframe>
-            """, height=820, scrolling=True)
-        else:
-            st.error("해당 학생의 구글 시트 정보가 없습니다.")
+    st.subheader("📄 학습 기록 보기")
 
-    st.markdown("---")
+    # 기간 선택
+    period = st.selectbox("기간 선택", ["전체", "이번주", "이번달", "최근 7일"])
 
-    # Button 2 → Local HTML display → Local HTML display
-    html_file = "2026ver.html"
-    if st.button("통계 HTML 보기"):
-        try:
-            with open(html_file, "r", encoding="utf-8") as f:
-                html_content = f.read()
-            st.components.v1.html(html_content, height=800, scrolling=True)
-        except FileNotFoundError:
-            st.error("⚠️ 2026ver.html 파일이 GitHub에 없습니다.")
+    # Google sheet embed
+    if sheet_url:
+        st.components.v1.html(f"""
+            <iframe src='{sheet_url}' width='100%' height='700px'></iframe>
+        """, height=720)
+    else:
+        st.warning("해당 학생의 시트 정보가 없습니다.")
 
     st.markdown("---")
 
-    # 🔙 뒤로가기 버튼
-    if st.button("🔙 로그아웃 / 뒤로가기"):
-        st.session_state["logged_in"] = False
-        st.session_state["user_id"] = None
+    if st.button("🔙 로그아웃"):
+        st.session_state.clear()
         st.rerun()
 
 # ------------------------------------------------------
-# 🚀 앱 실행 로직
+# 👨‍🏫 관리자 페이지
+# ------------------------------------------------------
+def admin_page():
+    mobile_header()
+
+    st.title("관리자 모드")
+    st.write("학생 관리 / 전체 보고서 / 링크 설정 기능 제공")
+
+    tab1, tab2 = st.tabs(["📁 전체 학생 리스트", "⚙️ 시트 매핑 관리"])
+
+    # 전체 계정 확인
+    with tab1:
+        try:
+            df = pd.read_csv(ACCOUNTS_FILE)
+            st.dataframe(df)
+        except:
+            st.error("accounts.csv 불러오기 실패")
+
+    # Google Sheet 매핑 관리
+    with tab2:
+        try:
+            df2 = pd.read_csv(SHEETS_FILE)
+            st.dataframe(df2)
+        except:
+            st.error("sheets.csv 불러오기 실패")
+
+    st.markdown("---")
+
+    if st.button("🔙 로그아웃"):
+        st.session_state.clear()
+        st.rerun()
+
+# ------------------------------------------------------
+# 🚀 앱 실행
 # ------------------------------------------------------
 def app():
     if "logged_in" not in st.session_state:
         st.session_state["logged_in"] = False
-        st.session_state["user_id"] = None
 
-    if st.session_state["logged_in"]:
-        main_page()
-    else:
+    if not st.session_state["logged_in"]:
         login_page()
+    else:
+        if st.session_state.get("role", "student") == "admin":
+            admin_page()
+        else:
+            student_page()
 
 if __name__ == "__main__":
     app()
