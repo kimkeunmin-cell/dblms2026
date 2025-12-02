@@ -62,7 +62,7 @@ def student_page():
         if device == "PC":
             try:
                 pc_url = sheet_url + "&widget=true&headers=true"
-                st.components.v1.html(f"<iframe src='{pc_url}' style='width:200%; height:600px; border:none;'></iframe>", height=600)
+                st.components.v1.html(f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none;'></iframe>", height=600)
             except Exception as e:
                 st.warning(f"iframe 렌더링 실패: {e}")
         else:
