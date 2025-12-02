@@ -4,3 +4,5 @@ requests
 matplotlib
 plotly
 numpy
+gspread
+google.oauth2.service_account
