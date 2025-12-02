@@ -58,11 +58,11 @@ def student_page():
         st.warning(f"sheets.csv 읽기 실패: {e}")
 
     if sheet_url:
-        device = st.radio("PC 또는 모바일", ["PC", "모바일"])
+        device = st.radio("PC 또는 모바일(스마트폰, 태블릿PC)", ["PC", "모바일(스마트폰, 태블릿PC)"])
         if device == "PC":
             try:
                 pc_url = sheet_url + "&widget=true&headers=true"
-                st.components.v1.html(f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none;'></iframe>", height=600)
+                st.components.v1.html(f"<iframe src='{pc_url}' style='width:200%; height:600px; border:none;'></iframe>", height=600)
             except Exception as e:
                 st.warning(f"iframe 렌더링 실패: {e}")
         else:
