@@ -1,19 +1,11 @@
 import streamlit as st
 import pandas as pd
 
-# ------------------------------------------------------
-# CSV 파일: accounts.csv (학생 로그인), sheets.csv (학생별 구글 시트)
-# accounts.csv → id,password,role  ← 역할 추가 (student / admin)
-# ------------------------------------------------------
-
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
 
 st.set_page_config(page_title="Login System", layout="centered")
 
-# ------------------------------------------------------
-# 로그인 유효성 검사
-# ------------------------------------------------------
 def check_login(user_id, user_pw):
     try:
         df = pd.read_csv(ACCOUNTS_FILE, dtype=str)
@@ -24,23 +16,16 @@ def check_login(user_id, user_pw):
     row = df[(df['id'] == user_id) & (df['password'] == user_pw)]
     if row.empty:
         return None
-    return row.iloc[0]  # id, password, role 포함
+    return row.iloc[0]
 
-# ------------------------------------------------------
-# 모바일 최적화 버튼 스타일
-# ------------------------------------------------------
 def mobile_header():
     st.markdown(
         "<style> .stButton>button { width:100%; height:50px; font-size:20px; } </style>",
         unsafe_allow_html=True
     )
 
-# ------------------------------------------------------
-# 로그인 페이지
-# ------------------------------------------------------
 def login_page():
     st.title("로그인")
-
     user_id = st.text_input("아이디", "")
     user_pw = st.text_input("비밀번호", "", type="password")
 
@@ -54,15 +39,11 @@ def login_page():
         else:
             st.error("❌ 로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.")
 
-# ------------------------------------------------------
-# 학생 페이지
-# ------------------------------------------------------
 def student_page():
     mobile_header()
     st.title("학생 페이지")
     st.write(f"{st.session_state['user_id']}님 환영합니다.")
 
-    # 학생별 구글 시트 가져오기
     try:
         df = pd.read_csv(SHEETS_FILE, dtype=str)
         row = df[df['id'] == st.session_state['user_id']]
@@ -81,7 +62,25 @@ def student_page():
             pc_url = sheet_url + "&widget=true&headers=true"
             st.components.v1.html(f"<iframe src='{pc_url}' style='width:100%; height:700px; border:none;'></iframe>", height=720)
         else:
-            st.markdown(f"[📄 Google Sheet 새 탭으로 열기]({sheet_url})", unsafe_allow_html=True)
+            # 모바일용 예쁘게 디자인된 버튼
+            st.markdown(f"""
+            <div style='text-align:center; margin:20px 0;'>
+                <a href='{sheet_url}' target='_blank' style='
+                    display:inline-block;
+                    background-color:#4CAF50;
+                    color:white;
+                    padding:15px 25px;
+                    font-size:18px;
+                    font-weight:bold;
+                    border-radius:8px;
+                    text-decoration:none;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+                    transition: 0.3s;
+                ' onmouseover="this.style.backgroundColor='#45a049'" onmouseout="this.style.backgroundColor='#4CAF50'">
+                    📄 Google Sheet 새 탭에서 열기
+                </a>
+            </div>
+            """, unsafe_allow_html=True)
     else:
         st.warning("해당 학생의 시트 정보가 없습니다.")
 
@@ -90,9 +89,6 @@ def student_page():
         st.session_state.clear()
         st.rerun()
 
-# ------------------------------------------------------
-# 관리자 페이지
-# ------------------------------------------------------
 def admin_page():
     mobile_header()
     st.title("관리자 모드")
@@ -119,9 +115,6 @@ def admin_page():
         st.session_state.clear()
         st.rerun()
 
-# ------------------------------------------------------
-# 앱 실행
-# ------------------------------------------------------
 def app():
     if "logged_in" not in st.session_state:
         st.session_state["logged_in"] = False
