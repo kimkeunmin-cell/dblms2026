@@ -102,21 +102,18 @@ def student_page():
             goal_df = pd.read_csv(csv_url, engine='python', quotechar='"', nrows=2, on_bad_lines='skip', header=None)
             goals = pd.to_numeric(goal_df.iloc[1, 1:], errors='coerce')
 
-            # 사용자 입력
-            st.write("### 분석 기간 및 과목 선택")
-            start_date = st.date_input("시작일", value=data_df['일시'].min())
-            end_date = st.date_input("종료일", value=data_df['일시'].max())
-            cols = st.multiselect("분석할 과목 선택", options=ANALYSIS_COLUMNS, default=ANALYSIS_COLUMNS)
+            # 사용자 입력: 시작일, 종료일, 변수 선택
+            st.write("### 분석 기간 및 변수 선택")
+            start_date, end_date = st.date_input("기간 선택 (시작일, 종료일)", [data_df['일시'].min(), data_df['일시'].max()])
+            selected_cols = st.multiselect("분석할 변수 선택", options=ANALYSIS_COLUMNS, default=ANALYSIS_COLUMNS)
 
             mask = (data_df['일시'] >= pd.to_datetime(start_date)) & (data_df['일시'] <= pd.to_datetime(end_date))
             filtered_df = data_df.loc[mask]
 
-            # --------------------
-            # 가로형 누적 막대그래프 (Plotly)
-            # --------------------
+            # 가로형 누적 막대그래프
             if not filtered_df.empty:
                 fig = go.Figure()
-                for col in cols:
+                for col in selected_cols:
                     fig.add_trace(go.Bar(
                         y=filtered_df['일시'].dt.strftime('%Y-%m-%d'),
                         x=filtered_df[col],
@@ -126,13 +123,11 @@ def student_page():
                 fig.update_layout(barmode='stack', title='가로형 누적 막대그래프', xaxis_title='시간', yaxis_title='일시', height=500)
                 st.plotly_chart(fig, use_container_width=True)
 
-                # --------------------
-                # 목표 대비 평균 세로형 막대그래프 (Plotly)
-                # --------------------
-                means = filtered_df[cols].mean()
+                # 목표 대비 평균 세로형 막대그래프
+                means = filtered_df[selected_cols].mean()
                 fig2 = go.Figure()
-                fig2.add_trace(go.Bar(x=cols, y=means, name='실제 평균', marker_color='skyblue'))
-                fig2.add_trace(go.Scatter(x=cols, y=goals, mode='lines+markers', name='목표', line=dict(color='red', dash='dash')))
+                fig2.add_trace(go.Bar(x=selected_cols, y=means, name='실제 평균', marker_color='skyblue'))
+                fig2.add_trace(go.Scatter(x=selected_cols, y=goals, mode='lines+markers', name='목표', line=dict(color='red', dash='dash')))
                 fig2.update_layout(title='목표 대비 평균', yaxis_title='시간', height=400)
                 st.plotly_chart(fig2, use_container_width=True)
             else:
