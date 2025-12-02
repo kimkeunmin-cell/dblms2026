@@ -1,5 +1,7 @@
-id,password
-30635,111
-30636,222
-30730,aaa
+id,password,role
+admin,000,admin
+30635,111,student
+30636,222,student
+30730,aaa,student
+
 
