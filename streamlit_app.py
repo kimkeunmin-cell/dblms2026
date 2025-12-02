@@ -87,13 +87,14 @@ def student_page():
         st.subheader("📊 학습 통계 (인터랙티브)")
 
         try:
+            # CSV 안정적으로 읽기 (engine='python', 큰 셀/줄바꿈 처리)
             csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
-            data_df = pd.read_csv(csv_url)
+            data_df = pd.read_csv(csv_url, engine='python', quotechar='"', on_bad_lines='skip')
             data_df['date'] = pd.to_datetime(data_df['date'], errors='coerce')
 
             # 목표값 추출 (2행)
-            goal_df = pd.read_csv(csv_url, header=None, nrows=2)
-            goals = goal_df.iloc[1, 1:]
+            goal_df = pd.read_csv(csv_url, engine='python', quotechar='"', nrows=2, on_bad_lines='skip', header=None)
+            goals = pd.to_numeric(goal_df.iloc[1, 1:], errors='coerce')
 
             # 사용자 입력
             st.write("### 분석 기간 및 과목 선택")
@@ -120,12 +121,12 @@ def student_page():
                 st.plotly_chart(fig, use_container_width=True)
 
                 # --------------------
-                # 목표 대비 평균 세로형 막대그래프
+                # 목표 대비 평균 세로형 막대그래프 (Plotly)
                 # --------------------
                 means = filtered_df[cols].mean()
                 fig2 = go.Figure()
                 fig2.add_trace(go.Bar(x=cols, y=means, name='실제 평균', marker_color='skyblue'))
-                fig2.add_trace(go.Scatter(x=cols, y=goals.values, mode='lines+markers', name='목표', line=dict(color='red', dash='dash')))
+                fig2.add_trace(go.Scatter(x=cols, y=goals, mode='lines+markers', name='목표', line=dict(color='red', dash='dash')))
                 fig2.update_layout(title='목표 대비 평균', yaxis_title='시간', height=400)
                 st.plotly_chart(fig2, use_container_width=True)
             else:
