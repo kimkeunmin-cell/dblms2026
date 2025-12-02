@@ -33,21 +33,6 @@ def mobile_header():
         unsafe_allow_html=True
     )
 
-def login_page():
-    st.title("로그인")
-    user_id = st.text_input("아이디", "")
-    user_pw = st.text_input("비밀번호", "", type="password")
-
-    if st.button("로그인"):
-        user = check_login(user_id, user_pw)
-        if user is not None:
-            st.session_state["logged_in"] = True
-            st.session_state["user_id"] = user_id
-            st.session_state["role"] = user.get("role", "student")
-            st.rerun()
-        else:
-            st.error("❌ 로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.")
-
 def student_page():
     mobile_header()
     st.title("학생 페이지")
@@ -69,7 +54,10 @@ def student_page():
 
         if device == "PC":
             pc_url = sheet_url + "&widget=true&headers=true"
-            st.components.v1.html(f"<iframe src='{pc_url}' style='width:100%; height:400px; border:none;'></iframe>", height=420)
+            st.components.v1.html(
+                f"<iframe src='{pc_url}' style='width:100%; height:900px; border:none;'></iframe>",
+                height=900
+            )
         else:
             st.markdown(f"""
             <div style='text-align:center; margin:20px 0;'>
@@ -97,10 +85,14 @@ def student_page():
             csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
             data_df = pd.read_csv(csv_url, engine='python', quotechar='"', on_bad_lines='skip', header=0)
 
-            # 컬럼 이름 공백 제거
-            data_df.columns = data_df.columns.str.strip()
+            # 컬럼 이름 앞뒤 공백 제거 및 
+ 제거
+            data_df.columns = data_df.columns.str.strip().str.replace('\r','')
 
-            # '일시' 컬럼 변환
+            # 일시 컬럼 확인 후 변환
+            if '일시' not in data_df.columns:
+                st.error(f"CSV 컬럼 확인 필요: {data_df.columns.tolist()}")
+                return
             data_df['일시'] = pd.to_datetime(data_df['일시'], errors='coerce')
 
             # 목표값 추출 (2행)
@@ -147,43 +139,3 @@ def student_page():
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
         st.rerun()
-
-def admin_page():
-    mobile_header()
-    st.title("관리자 모드")
-    st.write("학생 관리 / 전체 보고서 / 링크 설정 기능 제공")
-
-    tab1, tab2 = st.tabs(["📁 전체 학생 리스트", "⚙️ 시트 매핑 관리"])
-
-    with tab1:
-        try:
-            df = pd.read_csv(ACCOUNTS_FILE)
-            st.dataframe(df)
-        except:
-            st.error("accounts.csv 불러오기 실패")
-
-    with tab2:
-        try:
-            df2 = pd.read_csv(SHEETS_FILE)
-            st.dataframe(df2)
-        except:
-            st.error("sheets.csv 불러오기 실패")
-
-    if st.button("🔙 로그아웃"):
-        st.session_state.clear()
-        st.rerun()
-
-def app():
-    if "logged_in" not in st.session_state:
-        st.session_state["logged_in"] = False
-
-    if not st.session_state["logged_in"]:
-        login_page()
-    else:
-        if st.session_state.get("role", "student") == "admin":
-            admin_page()
-        else:
-            student_page()
-
-if __name__ == "__main__":
-    app()
