@@ -81,7 +81,6 @@ def student_page():
         """, height=720)
     else:
         st.warning("해당 학생의 시트 정보가 없습니다.")
-        st.warning("해당 학생의 시트 정보가 없습니다.")
 
     st.markdown("---")
 
