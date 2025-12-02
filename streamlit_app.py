@@ -6,6 +6,13 @@ import plotly.graph_objects as go
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
 
+ANALYSIS_COLUMNS = [
+    "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학(시간)", "비문학(시간)", "화언(시간)", "국어기타(시간)", "국어합(시간)",
+    "대수(시간)", "미적(시간)", "확통(시간)", "수학기타(시간)", "수학합(시간)",
+    "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
+    "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "전체합(시간)"
+]
+
 st.set_page_config(page_title="Login System", layout="centered")
 
 def check_login(user_id, user_pw):
@@ -87,10 +94,9 @@ def student_page():
         st.subheader("📊 학습 통계 (인터랙티브)")
 
         try:
-            # CSV 안정적으로 읽기 (engine='python', 큰 셀/줄바꿈 처리)
             csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
             data_df = pd.read_csv(csv_url, engine='python', quotechar='"', on_bad_lines='skip')
-            data_df['date'] = pd.to_datetime(data_df['date'], errors='coerce')
+            data_df['일시'] = pd.to_datetime(data_df['일시'], errors='coerce')
 
             # 목표값 추출 (2행)
             goal_df = pd.read_csv(csv_url, engine='python', quotechar='"', nrows=2, on_bad_lines='skip', header=None)
@@ -98,11 +104,11 @@ def student_page():
 
             # 사용자 입력
             st.write("### 분석 기간 및 과목 선택")
-            start_date = st.date_input("시작일", value=data_df['date'].min())
-            end_date = st.date_input("종료일", value=data_df['date'].max())
-            cols = st.multiselect("분석할 과목 선택", options=data_df.columns[1:], default=data_df.columns[1:])
+            start_date = st.date_input("시작일", value=data_df['일시'].min())
+            end_date = st.date_input("종료일", value=data_df['일시'].max())
+            cols = st.multiselect("분석할 과목 선택", options=ANALYSIS_COLUMNS, default=ANALYSIS_COLUMNS)
 
-            mask = (data_df['date'] >= pd.to_datetime(start_date)) & (data_df['date'] <= pd.to_datetime(end_date))
+            mask = (data_df['일시'] >= pd.to_datetime(start_date)) & (data_df['일시'] <= pd.to_datetime(end_date))
             filtered_df = data_df.loc[mask]
 
             # --------------------
@@ -112,12 +118,12 @@ def student_page():
                 fig = go.Figure()
                 for col in cols:
                     fig.add_trace(go.Bar(
-                        y=filtered_df['date'].dt.strftime('%Y-%m-%d'),
+                        y=filtered_df['일시'].dt.strftime('%Y-%m-%d'),
                         x=filtered_df[col],
                         name=col,
                         orientation='h'
                     ))
-                fig.update_layout(barmode='stack', title='가로형 누적 막대그래프', xaxis_title='시간', yaxis_title='날짜', height=500)
+                fig.update_layout(barmode='stack', title='가로형 누적 막대그래프', xaxis_title='시간', yaxis_title='일시', height=500)
                 st.plotly_chart(fig, use_container_width=True)
 
                 # --------------------
