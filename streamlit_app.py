@@ -52,13 +52,13 @@ def student_page():
         st.write("사용하실 환경을 선택하세요:")
         device = st.radio("PC 또는 모바일", ["PC", "모바일"])
 
-        if device == "PC":
+        if device == "PC" and sheet_url:
             pc_url = sheet_url + "&widget=true&headers=true"
             st.components.v1.html(
-                f"<iframe src='{pc_url}' style='width:100%; height:900px; border:none;'></iframe>",
-                height=900
+                f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none;'></iframe>",
+                height=600
             )
-        else:
+        elif device == "모바일" and sheet_url:
             st.markdown(f"""
             <div style='text-align:center; margin:20px 0;'>
                 <a href='{sheet_url}' target='_blank' style='
@@ -70,30 +70,30 @@ def student_page():
                     font-weight:bold;
                     border-radius:8px;
                     text-decoration:none;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-                    transition: 0.3s;
-                ' onmouseover="this.style.backgroundColor='#45a049'" onmouseout="this.style.backgroundColor='#4CAF50'">
-                    📄 Google Sheet 새 탭에서 열기
-                </a>
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.2);'>📄 Google Sheet 새 탭에서 열기</a>
             </div>
             """, unsafe_allow_html=True)
 
         st.markdown("---")
         st.subheader("📊 학습 통계 (인터랙티브)")
 
+        data_df = None
         try:
             csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
             data_df = pd.read_csv(csv_url, engine='python', quotechar='"', on_bad_lines='skip', header=0)
-
-            # 컬럼 이름 앞뒤 공백 제거 
             data_df.columns = data_df.columns.str.strip().str.replace('\r','')
 
-            # 일시 컬럼 확인 후 변환
             if '일시' not in data_df.columns:
-                st.error(f"CSV 컬럼 확인 필요: {data_df.columns.tolist()}")
-                return
-            data_df['일시'] = pd.to_datetime(data_df['일시'], errors='coerce')
+                st.warning(f"CSV 컬럼 확인 필요: {data_df.columns.tolist()}")
+                data_df = None
+            else:
+                data_df['일시'] = pd.to_datetime(data_df['일시'], errors='coerce')
 
+        except Exception as e:
+            st.warning(f"CSV 로드 실패: {e}")
+            data_df = None
+
+        if data_df is not None:
             # 목표값 추출 (2행)
             goal_df = pd.read_csv(csv_url, engine='python', quotechar='"', nrows=2, on_bad_lines='skip', header=None)
             goals = pd.to_numeric(goal_df.iloc[1, 1:], errors='coerce')
@@ -106,7 +106,6 @@ def student_page():
             mask = (data_df['일시'] >= pd.to_datetime(start_date)) & (data_df['일시'] <= pd.to_datetime(end_date))
             filtered_df = data_df.loc[mask]
 
-            # 가로형 누적 막대그래프
             if not filtered_df.empty:
                 fig = go.Figure()
                 for col in selected_cols:
@@ -119,7 +118,6 @@ def student_page():
                 fig.update_layout(barmode='stack', title='가로형 누적 막대그래프', xaxis_title='시간', yaxis_title='일시', height=500)
                 st.plotly_chart(fig, use_container_width=True)
 
-                # 목표 대비 평균 세로형 막대그래프
                 means = filtered_df[selected_cols].mean()
                 fig2 = go.Figure()
                 fig2.add_trace(go.Bar(x=selected_cols, y=means, name='실제 평균', marker_color='skyblue'))
@@ -128,9 +126,8 @@ def student_page():
                 st.plotly_chart(fig2, use_container_width=True)
             else:
                 st.info("선택된 기간에 데이터가 없습니다.")
-
-        except Exception as e:
-            st.warning(f"통계 불러오기 실패: {e}")
+        else:
+            st.info("통계 데이터를 불러올 수 없습니다.")
 
     else:
         st.warning("해당 학생의 시트 정보가 없습니다.")
