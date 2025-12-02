@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
@@ -39,6 +40,9 @@ def login_page():
         else:
             st.error("❌ 로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.")
 
+# ------------------------------------------------------
+# 학생 페이지
+# ------------------------------------------------------
 def student_page():
     mobile_header()
     st.title("학생 페이지")
@@ -60,9 +64,8 @@ def student_page():
 
         if device == "PC":
             pc_url = sheet_url + "&widget=true&headers=true"
-            st.components.v1.html(f"<iframe src='{pc_url}' style='width:100%; height:700px; border:none;'></iframe>", height=720)
+            st.components.v1.html(f"<iframe src='{pc_url}' style='width:100%; height:400px; border:none;'></iframe>", height=420)
         else:
-            # 모바일용 예쁘게 디자인된 버튼
             st.markdown(f"""
             <div style='text-align:center; margin:20px 0;'>
                 <a href='{sheet_url}' target='_blank' style='
@@ -81,10 +84,62 @@ def student_page():
                 </a>
             </div>
             """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # --------------------
+        # 통계 및 시각화 구현
+        # --------------------
+        st.subheader("📊 학습 통계")
+
+        # 학생이 구글 시트 CSV URL로 불러오기
+        # 시트는 첫 행=헤더, 2행=목표, 날짜, 과목별 시간 컬럼 존재 가정
+        try:
+            csv_url = sheet_url.replace('/edit?usp=sharing', '/gviz/tq?tqx=out:csv')
+            data_df = pd.read_csv(csv_url)
+            # 날짜 컬럼 datetime 변환
+            data_df['date'] = pd.to_datetime(data_df['date'], errors='coerce')
+
+            # 목표값 추출 (2행)
+            goal_df = pd.read_csv(csv_url, header=None, nrows=2)
+            goals = goal_df.iloc[1, 1:]  # 날짜 제외한 컬럼 평균 비교용
+
+            # 사용자 입력: 날짜 범위, 시각화할 정보 선택
+            st.write("### 1️⃣ 분석 기간 선택")
+            start_date = st.date_input("시작일", value=data_df['date'].min())
+            end_date = st.date_input("종료일", value=data_df['date'].max())
+            cols = st.multiselect("분석할 과목 선택", options=data_df.columns[1:], default=data_df.columns[1:])
+
+            # 기간 필터링
+            mask = (data_df['date'] >= pd.to_datetime(start_date)) & (data_df['date'] <= pd.to_datetime(end_date))
+            filtered_df = data_df.loc[mask]
+
+            # --------------------
+            # 가로형 누적 막대그래프
+            # --------------------
+            st.write("### 가로형 누적 막대그래프")
+            plt.figure(figsize=(10, 4))
+            filtered_df.plot(x='date', y=cols, kind='barh', stacked=True, figsize=(10, 4))
+            st.pyplot(plt.gcf())
+
+            # --------------------
+            # 목표 대비 평균 세로형 막대그래프
+            # --------------------
+            st.write("### 목표 대비 평균")
+            means = filtered_df[cols].mean()
+            plt.figure(figsize=(6,4))
+            plt.bar(cols, means, color='skyblue', label='실제 평균')
+            plt.plot(cols, goals.values, 'r--', marker='o', label='목표')
+            plt.ylabel('시간')
+            plt.legend()
+            st.pyplot(plt.gcf())
+
+        except Exception as e:
+            st.warning(f"통계 불러오기 실패: {e}")
+
     else:
         st.warning("해당 학생의 시트 정보가 없습니다.")
 
-    st.markdown("---")
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
         st.rerun()
@@ -110,7 +165,6 @@ def admin_page():
         except:
             st.error("sheets.csv 불러오기 실패")
 
-    st.markdown("---")
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
         st.rerun()
