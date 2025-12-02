@@ -47,20 +47,7 @@ def login_page():
             st.error("❌ 로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다.")
 
 # ------------------------------------------------------
-# 📊 데이터 기간 필터링 기능
-# ------------------------------------------------------
-def filter_by_period(df, period):
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
-    today = datetime.today()
-
-    if period == "이번주":
-        start = today - timedelta(days=today.weekday())
-    elif period == "이번달":
-        start = today.replace(day=1)
-    elif period == "최근 7일":
-        start = today - timedelta(days=7)
-    else:
-        return df
+# (삭제됨) - 기간 필터링 기능은 요청에 따라 제거됨
 
     return df[df['date'] >= start]
 
@@ -75,7 +62,6 @@ def mobile_header():
 
 # ------------------------------------------------------
 # 👨‍🎓 학생 메인 화면
-# ------------------------------------------------------
 def student_page():
     mobile_header()
     st.title("학생 페이지")
@@ -90,17 +76,19 @@ def student_page():
         sheet_url = None
         st.error("⚠️ sheets.csv 파일이 없습니다.")
 
-    st.subheader("📄 학습 기록 보기")
+    st.subheader("📄 학습 기록 보기 (모바일·PC 고정행/열 지원)")("📄 학습 기록 보기")
 
     # 기간 선택
     period = st.selectbox("기간 선택", ["전체", "이번주", "이번달", "최근 7일"])
 
-    # Google sheet embed
+        # Google sheet embed — 모바일에서도 고정행/열 정상 표시되는 모드(widget=true) 적용
     if sheet_url:
+        mobile_friendly_url = sheet_url + "&widget=true&headers=true"
         st.components.v1.html(f"""
-            <iframe src='{sheet_url}' width='100%' height='700px'></iframe>
+            <iframe src='{mobile_friendly_url}' style='width:100%; height:700px; border:none;'></iframe>
         """, height=720)
     else:
+        st.warning("해당 학생의 시트 정보가 없습니다.")
         st.warning("해당 학생의 시트 정보가 없습니다.")
 
     st.markdown("---")
