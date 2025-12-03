@@ -93,9 +93,6 @@ def student_page():
             keep_cols = ["일시"] + ANALYSIS_COLUMNS
             df_csv = df_csv[[col for col in keep_cols if col in df_csv.columns]]
 
-            st.write("상위 10행 샘플 데이터")
-            st.dataframe(df_csv.head(10))
-
         except Exception as e:
             st.warning(f"CSV 로드 실패: {e}")
             return
@@ -126,6 +123,13 @@ def student_page():
         st.write(f"📌 선택된 데이터 수: {len(df_range)}개")
         st.session_state['viz_data'] = df_range
 
+      # ------------------ CSV로 변환 후 DataFrame ------------------
+        st.markdown("---")
+        st.subheader("데이터 확인")
+        st.write("선택 날짜 범위에 대한 데이터")
+        st.dataframe(df_range)
+
+      
         # ------------------ 시각화 탭 ------------------
         st.markdown("---")
         st.subheader("📊 시각화 결과")
@@ -170,12 +174,10 @@ def student_page():
             try:
                 # 목표값: CSV 첫 번째 행
                 goal_values = df_csv[ANALYSIS_COLUMNS].iloc[0]
-                # pd.to_numeric(df_csv[ANALYSIS_COLUMNS].iloc[0], errors='coerce').fillna(0)
 
                 # 평균값: 첫 행 제외 + 선택 기간 데이터만
                 df_range_no_goal = df_range.copy()
                 avg_values = df_range_no_goal[ANALYSIS_COLUMNS].mean()
-                # pd.to_numeric(df_range_no_goal[ANALYSIS_COLUMNS], errors='coerce').fillna(0).mean()
 
                 fig2 = go.Figure()
                 fig2.add_trace(go.Bar(
