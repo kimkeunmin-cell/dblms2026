@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import datetime
 
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
@@ -107,9 +108,37 @@ def student_page():
     except:
         st.error("❌ '일시' 컬럼 날짜 변환 실패.")
         return
+    
+
+    min_date = df_csv["일시"].min().date()
+    max_date = df_csv["일시"].max().date()
+
+    # 기본값: 오늘 기준 1주일 전 ~ 오늘
+    today = datetime.date.today()
+    default_start = max(today - datetime.timedelta(days=7), min_date)
+    default_end = min(today, max_date)
+
+    # 범위가 유효하지 않으면 데이터의 첫 날짜부터 8일
+    if default_start > max_date or default_end < min_date:
+        default_start = min_date
+        default_end = min(min_date + datetime.timedelta(days=7), max_date)
+
+    start_date = st.date_input(
+        "📅 시작 날짜",
+        value=default_start,
+        min_value=min_date,
+        max_value=max_date
+        )
+    end_date = st.date_input(
+        "📅 종료 날짜",
+        value=default_end,
+        min_value=min_date,
+        max_value=max_date
+        )
 
     min_date = df_csv["일시"].min()
     max_date = df_csv["일시"].max()
+
     start_date = st.date_input("📅 시작 날짜", value=min_date, min_value=min_date, max_value=max_date)
     end_date = st.date_input("📅 종료 날짜", value=max_date, min_value=min_date, max_value=max_date)
     if start_date > end_date:
