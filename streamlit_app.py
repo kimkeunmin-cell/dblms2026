@@ -94,7 +94,7 @@ def student_page():
                 else:
                     keep_column.append(i)
                     
-            keep_cols = ["일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학 (시간)"]
+            keep_cols = ["일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학\n(시간)"]
 
             df_csv = df_csv[keep_cols]
 
