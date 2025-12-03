@@ -38,7 +38,7 @@ def login_page():
     user_pw = st.text_input("비밀번호", value="", type="password")
     if st.button("로그인"):
         user = check_login(user_id, user_pw)
-        if user:
+        if user is not None:
             st.session_state['logged_in'] = True
             st.session_state['user_id'] = user_id
             st.session_state['role'] = user.get('role', 'student')
