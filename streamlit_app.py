@@ -127,13 +127,15 @@ def student_page():
         "📅 시작 날짜",
         value=default_start,
         min_value=min_date,
-        max_value=max_date
+        max_value=max_date,
+        key='start_date_picker'
         )
     end_date = st.date_input(
         "📅 종료 날짜",
         value=default_end,
         min_value=min_date,
-        max_value=max_date
+        max_value=max_date,
+        key='end_date_picker'
         )
 
     min_date = df_csv["일시"].min()
