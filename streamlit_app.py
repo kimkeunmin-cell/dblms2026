@@ -78,6 +78,7 @@ def student_page():
 
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
             df_csv.columns = df_csv.columns.str.strip().str.replace('','').str.replace('','').str.replace(' ','_')
+            st.write(df_csv.columns)
 
             # 필요한 컬럼만 필터링
             keep_cols = [
