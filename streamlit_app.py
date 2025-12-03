@@ -168,53 +168,53 @@ def student_page():
 
         # ------- 탭 2: 목표 대비 평균 -------
         with tab2:
-            st.subheader("📌 목표 대비 평균 비교")
-            # st.write(df_range[ANALYSIS_COLUMNS])
-            if 1==1:
-                try:
-                  # 목표값: CSV 첫 번째 행
-                  goal_values = df_csv[ANALYSIS_COLUMNS]
-                  # goal_values = pd.to_numeric(df_csv[ANALYSIS_COLUMNS].iloc[0], errors='coerce').fillna(0)
-                  st.write(goal_values)
-                  # 평균값: 첫 번째 행 제외 후 선택 기간 데이터
-                  avg_values = df_range[ANALYSIS_COLUMNS].mean()
-                  # avg_values = pd.to_numeric(df_range[ANALYSIS_COLUMNS], errors='coerce').fillna(0).mean()
-                  st.write(avg_values)
-                  fig2 = go.Figure()
-                  fig2.add_trace(go.Bar(
-                      x=ANALYSIS_COLUMNS,
-                      y=avg_values.round(2),
-                      name="평균",
-                      marker_color='skyblue',
-                      text=avg_values.round(2),
-                      texttemplate='%{text}',
-                      textposition='outside',
-                      hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
-                  ))
-                  fig2.add_trace(go.Bar(
-                      x=ANALYSIS_COLUMNS,
-                      y=goal_values.round(2),
-                      name="목표",
-                      marker_color='orange',
-                      text=goal_values.round(2),
-                      texttemplate='%{text}',
-                      textposition='outside',
-                      hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
-                  ))
-                  fig2.update_layout(
-                      yaxis_title="시간(시간)",
-                      xaxis_title="항목",
-                      xaxis=dict(tickangle=-45),
-                      height=600,
-                      margin=dict(l=50, r=20, t=50, b=150),
-                      barmode='group',
-                      template="plotly_white",
-                      autosize=True
-                  )
-                  st.plotly_chart(fig2, use_container_width=True, responsive=True)
-               except:
-                  st.warning("목표 컬럼 처리 중 오류 발생.")
-            else:
+          st.subheader("📌 목표 대비 평균 비교")
+          # st.write(df_range[ANALYSIS_COLUMNS])
+          if 1==1:
+            try:
+              # 목표값: CSV 첫 번째 행
+              goal_values = df_csv[ANALYSIS_COLUMNS]
+              # goal_values = pd.to_numeric(df_csv[ANALYSIS_COLUMNS].iloc[0], errors='coerce').fillna(0)
+              st.write(goal_values)
+              # 평균값: 첫 번째 행 제외 후 선택 기간 데이터
+              avg_values = df_range[ANALYSIS_COLUMNS].mean()
+              # avg_values = pd.to_numeric(df_range[ANALYSIS_COLUMNS], errors='coerce').fillna(0).mean()
+              st.write(avg_values)
+              fig2 = go.Figure()
+              fig2.add_trace(go.Bar(
+                x=ANALYSIS_COLUMNS,
+                y=avg_values.round(2),
+                name="평균",
+                marker_color='skyblue',
+                text=avg_values.round(2),
+                texttemplate='%{text}',
+                textposition='outside',
+                hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
+                ))
+              fig2.add_trace(go.Bar(
+                x=ANALYSIS_COLUMNS,
+                y=goal_values.round(2),
+                name="목표",
+                marker_color='orange',
+                text=goal_values.round(2),
+                texttemplate='%{text}',
+                textposition='outside',
+                hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
+                ))
+              fig2.update_layout(
+                yaxis_title="시간(시간)",
+                xaxis_title="항목",
+                xaxis=dict(tickangle=-45),
+                height=600,
+                margin=dict(l=50, r=20, t=50, b=150),
+                barmode='group',
+                template="plotly_white",
+                autosize=True
+                )
+              st.plotly_chart(fig2, use_container_width=True, responsive=True)
+            except:
+              st.warning("목표 컬럼 처리 중 오류 발생.")
+          else:
               st.warning("CSV에 '목표' 컬럼이 없습니다.")
         else:
           st.warning("해당 학생의 시트 정보가 없습니다.")
