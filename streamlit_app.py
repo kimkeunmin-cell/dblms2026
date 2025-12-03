@@ -169,7 +169,7 @@ def student_page():
         # ------- 탭 2: 목표 대비 평균 -------
         with tab2:
             st.subheader("📌 목표 대비 평균 비교")
-            st.write(df_range)
+            st.write(df_range[ANALYSIS_COLUMNS])
             if 1==1:
                 try:
                   # 목표값: CSV 첫 번째 행
