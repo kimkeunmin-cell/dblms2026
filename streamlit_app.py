@@ -78,7 +78,8 @@ def student_page():
 
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
             df_csv.columns = df_csv.columns.str.strip().str.replace('','').str.replace('','').str.replace(' ','_')
-
+            st.write(df_csv.columns)
+            
             # 필요한 컬럼만 필터링
             keep_cols = [
                 "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학 (시간)", "비문학 (시간)", "화언 (시간)", "국어 기타 (시간)", "국어합 (시간)",
