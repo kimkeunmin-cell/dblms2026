@@ -78,7 +78,6 @@ def student_page():
 
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
             df_csv.columns = df_csv.columns.str.strip().str.replace('','').str.replace('','').str.replace(' ','_')
-            st.write(df_csv.columns)
 
             # 필요한 컬럼만 필터링
             keep_cols = [
@@ -88,8 +87,7 @@ def student_page():
                 "통사 (시간)", "통과 (시간)", "탐구 기타 (시간)", "내신 기타 (시간)", "탐구합 (시간)", "전체합 (시간)"
             ]
 
-            existing_cols = [c for c in keep_cols if c in df_csv.columns]
-            df_csv = df_csv[existing_cols]
+            df_csv = df_csv[keep_cols]
 
             st.write("상위 10행 샘플 데이터")
             st.dataframe(df_csv.head(10))
