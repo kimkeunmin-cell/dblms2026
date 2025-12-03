@@ -140,9 +140,7 @@ def student_page():
 
     min_date = df_csv["일시"].min()
     max_date = df_csv["일시"].max()
-
-    start_date = st.date_input("📅 시작 날짜", value=min_date, min_value=min_date, max_value=max_date)
-    end_date = st.date_input("📅 종료 날짜", value=max_date, min_value=min_date, max_value=max_date)
+    
     if start_date > end_date:
         st.warning("⚠ 종료 날짜가 시작 날짜보다 빠를 수 없습니다.")
         return
