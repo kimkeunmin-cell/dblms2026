@@ -77,9 +77,7 @@ def student_page():
             csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
 
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
-            df_csv.columns = df_csv.columns.str.strip().str.replace('
-','').str.replace('
-','').str.replace(' ','_')
+            df_csv.columns = df_csv.columns.str.strip().str.replace('','').str.replace('','').str.replace(' ','_')
 
             # 필요한 컬럼만 필터링
             keep_cols = [
