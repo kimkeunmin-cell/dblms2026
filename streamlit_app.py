@@ -58,7 +58,7 @@ def student_page():
         st.warning(f"sheets.csv 읽기 실패: {e}")
 
     if sheet_url:
-        device = st.radio("PC 또는 모바일(스마트폰, 태블릿PC)", ["PC", "모바일(스마트폰, 태블릿PC)"])
+        device = st.radio("PC 또는 모바일", ["PC", "모바일"])
         if device == "PC":
             try:
                 pc_url = sheet_url + "&widget=true&headers=true"
@@ -77,9 +77,28 @@ def student_page():
             csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
 
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
-            df_csv.columns = df_csv.columns.str.strip().str.replace('\r','').str.replace('\n','').str.replace(' ','_')
+            df_csv.columns = df_csv.columns.str.strip().str.replace('
+','').str.replace('
+','').str.replace(' ','_')
+
+            # 필요한 컬럼만 필터링
+            keep_cols = [
+                "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학(시간)", "비문학(시간)", "화언(시간)", "국어기타(시간)", "국어합(시간)",
+                "대수(시간)", "미적(시간)", "확통(시간)", "수학기타(시간)", "수학합(시간)",
+                "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
+                "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "전체합(시간)"
+            ]
+
+            existing_cols = [c for c in keep_cols if c in df_csv.columns]
+            df_csv = df_csv[existing_cols]
 
             st.write("상위 10행 샘플 데이터")
+            st.dataframe(df_csv.head(10))
+
+            st.write("컬럼 목록")
+            st.write(df_csv.columns.tolist())
+
+("상위 10행 샘플 데이터")
             st.dataframe(df_csv.head(10))
 
             st.write("컬럼 목록")
