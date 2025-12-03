@@ -98,6 +98,129 @@ def student_page():
     else:
         st.warning("해당 학생의 시트 정보가 없습니다.")
 
+        # ===============================
+        # ▼▼▼  시각화 기능 추가 부분  ▼▼▼
+        # ===============================
+        st.markdown("---")
+        st.subheader("📊 시각화를 위한 기간 선택")
+
+        if 'df_csv' in locals():
+            # '일시'를 datetime으로 변환
+            if "일시" in df_csv.columns:
+                try:
+                    df_csv["일시"] = pd.to_datetime(df_csv["일시"], errors='coerce')
+                    df_csv = df_csv.dropna(subset=["일시"])
+                except:
+                    st.error("❌ '일시' 날짜 변환 실패. 시트의 날짜 형식을 확인해주세요.")
+            else:
+                st.error("❌ CSV에 '일시' 컬럼이 없습니다.")
+                return
+
+            # 날짜 범위를 고르기 위한 UI
+            min_date = df_csv["일시"].min()
+            max_date = df_csv["일시"].max()
+
+            start_date = st.date_input("📅 시작 날짜", value=min_date, min_value=min_date, max_value=max_date)
+            end_date = st.date_input("📅 종료 날짜", value=max_date, min_value=min_date, max_value=max_date)
+
+            if start_date > end_date:
+                st.warning("⚠ 종료 날짜가 시작 날짜보다 빠를 수 없습니다.")
+                return
+
+            # 선택한 범위로 필터링
+            df_range = df_csv[(df_csv["일시"] >= pd.to_datetime(start_date)) &
+                              (df_csv["일시"] <= pd.to_datetime(end_date))]
+
+            st.write(f"📌 선택된 데이터 수: {len(df_range)}개")
+
+            # ▼ 시각화할 변수 선택
+            st.subheader("📌 시각화할 항목 선택")
+            variable = st.selectbox("항목 선택", ANALYSIS_COLUMNS)
+
+            # 시각화 버튼
+            if st.button("📊 그래프 만들기"):
+                st.session_state['viz_data'] = df_range
+                st.session_state['viz_var'] = variable
+                st.experimental_rerun()
+
+        # ===============================
+        # ▲▲▲  시각화 기능 추가 부분 끝  ▲▲▲
+        # ===============================
+
+          # ===============================
+        # ▼▼▼  시각화 탭 추가 (여러 변수 선택 버전)  ▼▼▼
+        # ===============================
+        if 'viz_data' in st.session_state:
+            df_range = st.session_state['viz_data']
+
+            st.markdown("---")
+            st.subheader("📊 시각화 결과")
+
+            # 탭 생성
+            tab1, tab2 = st.tabs(["가로형 누적 막대 그래프", "목표 대비 평균 비교"])
+
+            # ------- 탭 1: 여러 변수 누적 표시 -------
+            with tab1:
+                st.subheader("📌 누적 막대그래프용 변수 선택")
+                selected_vars = st.multiselect("변수 선택 (여러 항목 가능)", ANALYSIS_COLUMNS, default=[ANALYSIS_COLUMNS[0]])
+
+                if selected_vars:
+                    fig = go.Figure()
+                    for var in selected_vars:
+                        fig.add_trace(go.Bar(
+                            y=df_range["일시"].dt.strftime("%Y-%m-%d"),
+                            x=df_range[var],
+                            orientation='h',
+                            name=var
+                        ))
+
+                    fig.update_layout(
+                        barmode='stack',
+                        xaxis_title="시간(시간)",
+                        yaxis_title="날짜",
+                        yaxis={'autorange':'reversed'},
+                        height=600,
+                        margin=dict(l=100, r=20, t=50, b=50)
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("📌 최소 하나 이상의 항목을 선택해주세요.")
+
+            # ------- 탭 2: 목표 대비 평균 비교 -------
+            with tab2:
+                st.subheader("📌 목표 대비 평균 비교")
+                if "목표" in df_range.columns:
+                    try:
+                        goal_values = df_range.iloc[1][ANALYSIS_COLUMNS].astype(float)
+                        avg_values = df_range[ANALYSIS_COLUMNS].astype(float).mean()
+
+                        fig2 = go.Figure()
+                        fig2.add_trace(go.Bar(
+                            x=ANALYSIS_COLUMNS,
+                            y=avg_values,
+                            name="평균",
+                            marker_color='skyblue'
+                        ))
+                        fig2.add_trace(go.Bar(
+                            x=ANALYSIS_COLUMNS,
+                            y=goal_values,
+                            name="목표",
+                            marker_color='orange'
+                        ))
+                        fig2.update_layout(
+                            yaxis_title="시간(시간)",
+                            xaxis_title="항목",
+                            height=500,
+                            barmode='group'
+                        )
+                        st.plotly_chart(fig2, use_container_width=True)
+                    except:
+                        st.warning("목표 컬럼 처리 중 오류 발생. CSV 2행에 목표 값이 있는지 확인해주세요.")
+                else:
+                    st.warning("CSV에 '목표' 컬럼이 없습니다.")
+
+  
+  
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
         st.experimental_rerun()
