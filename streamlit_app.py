@@ -222,12 +222,6 @@ def student_page():
         st.session_state.clear()
         st.experimental_rerun()
 
-
-    # ------------------ 로그아웃 ------------------
-    if st.button("🔙 로그아웃"):
-        st.session_state.clear()
-        st.experimental_rerun()
-
 # ------------------ 관리자 페이지 ------------------
 def admin_page():
     st.title("관리자 모드")
