@@ -39,7 +39,7 @@ def login_page():
             st.session_state['logged_in'] = True
             st.session_state['user_id'] = user_id
             st.session_state['role'] = user.get('role', 'student')
-            # st.experimental_rerun()
+            st.experimental_rerun()
         else:
             st.error("아이디 또는 비밀번호가 잘못되었습니다.")
 
