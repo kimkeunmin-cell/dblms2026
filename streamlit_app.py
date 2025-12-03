@@ -39,7 +39,7 @@ def login_page():
             st.session_state['logged_in'] = True
             st.session_state['user_id'] = user_id
             st.session_state['role'] = user.get('role', 'student')
-            st.experimental_rerun()
+            # st.experimental_rerun()
         else:
             st.error("아이디 또는 비밀번호가 잘못되었습니다.")
 
@@ -174,10 +174,10 @@ def student_page():
                   # 목표값: CSV 첫 번째 행
                     goal_values = pd.to_numeric(df_csv.iloc[0][ANALYSIS_COLUMNS], errors='coerce').fillna(0)
                     st.write(df_csv.iloc[0][1:])
-                    st.write(goal_values)
+                    # st.write(goal_values)
                   # 평균값: 첫 번째 행 제외 후 선택 기간 데이터
                     avg_values = pd.to_numeric(df_range[ANALYSIS_COLUMNS].iloc[1:], errors='coerce').fillna(0).mean()
-                    st.write(avg_values)
+                    # st.write(avg_values)
                     fig2 = go.Figure()
                     fig2.add_trace(go.Bar(
                         x=ANALYSIS_COLUMNS,
