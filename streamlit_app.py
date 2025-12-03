@@ -88,7 +88,7 @@ def student_page():
                 .str.replace('\r', '', regex=False)
                 .str.replace('\n', '', regex=False)
                 .str.replace(' ', '', regex=False)
-                .str.replace('　', '', regex=False)  # 전각 공백 제거
+                .str.replace('　', '', regex=False)
             )
 
             # 필요한 컬럼만 남기기
@@ -145,7 +145,10 @@ def student_page():
                         y=df_range["일시"].dt.strftime("%Y-%m-%d"),
                         x=pd.to_numeric(df_range[var], errors='coerce').fillna(0),
                         orientation='h',
-                        name=var
+                        name=var,
+                        text=pd.to_numeric(df_range[var], errors='coerce').fillna(0).round(2),
+                        texttemplate='%{text}',
+                        textposition='inside'
                     ))
 
                 fig.update_layout(
@@ -162,7 +165,7 @@ def student_page():
             else:
                 st.info("📌 최소 하나 이상의 항목을 선택해주세요.")
 
-        # ------- 탭 2: 목표 대비 평균 비교 -------
+        # ------- 탭 2: 목표 대비 평균 -------
         with tab2:
             st.subheader("📌 목표 대비 평균 비교")
             if "목표" in df_range.columns:
@@ -173,15 +176,21 @@ def student_page():
                     fig2 = go.Figure()
                     fig2.add_trace(go.Bar(
                         x=ANALYSIS_COLUMNS,
-                        y=avg_values,
+                        y=avg_values.round(2),
                         name="평균",
-                        marker_color='skyblue'
+                        marker_color='skyblue',
+                        text=avg_values.round(2),
+                        texttemplate='%{text}',
+                        textposition='outside'
                     ))
                     fig2.add_trace(go.Bar(
                         x=ANALYSIS_COLUMNS,
-                        y=goal_values,
+                        y=goal_values.round(2),
                         name="목표",
-                        marker_color='orange'
+                        marker_color='orange',
+                        text=goal_values.round(2),
+                        texttemplate='%{text}',
+                        textposition='outside'
                     ))
                     fig2.update_layout(
                         yaxis_title="시간(시간)",
