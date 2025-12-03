@@ -169,14 +169,13 @@ def student_page():
         # ------- 탭 2: 목표 대비 평균 -------
         with tab2:
             st.subheader("📌 목표 대비 평균 비교")
-            st.write(df_csv.head(2))
             if 1==1:
                 try:
                   # 목표값: CSV 첫 번째 행
-                    goal_values = pd.to_numeric(df_csv.iloc[0][ANALYSIS_COLUMNS], errors='coerce').fillna(0)
+                    goal_values = pd.to_numeric(df_csv.iloc[0], errors='coerce').fillna(0)
                     st.write(goal_values)
                   # 평균값: 첫 번째 행 제외 후 선택 기간 데이터
-                    avg_values = pd.to_numeric(df_range[ANALYSIS_COLUMNS].iloc[1:], errors='coerce').fillna(0).mean()
+                    avg_values = pd.to_numeric(df_range.iloc[1:], errors='coerce').fillna(0).mean()
                     st.write(avg_values)
                     fig2 = go.Figure()
                     fig2.add_trace(go.Bar(
