@@ -175,7 +175,7 @@ def student_page():
                     goal_values = pd.to_numeric(df_csv.iloc[0], errors='coerce').fillna(0)
                     st.write(goal_values)
                   # 평균값: 첫 번째 행 제외 후 선택 기간 데이터
-                    avg_values = pd.to_numeric(df_range.iloc[1:], errors='coerce').fillna(0).mean()
+                    avg_values = pd.to_numeric(df_range, errors='coerce').fillna(0).mean()
                     st.write(avg_values)
                     fig2 = go.Figure()
                     fig2.add_trace(go.Bar(
