@@ -148,7 +148,8 @@ def student_page():
                         name=var,
                         text=pd.to_numeric(df_range[var], errors='coerce').fillna(0).round(2),
                         texttemplate='%{text}',
-                        textposition='inside'
+                        textposition='inside',
+                        hovertemplate='(%{y}) %{x:.2f}시간<extra></extra>'
                     ))
 
                 fig.update_layout(
@@ -181,7 +182,8 @@ def student_page():
                         marker_color='skyblue',
                         text=avg_values.round(2),
                         texttemplate='%{text}',
-                        textposition='outside'
+                        textposition='outside',
+                        hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
                     ))
                     fig2.add_trace(go.Bar(
                         x=ANALYSIS_COLUMNS,
@@ -190,7 +192,8 @@ def student_page():
                         marker_color='orange',
                         text=goal_values.round(2),
                         texttemplate='%{text}',
-                        textposition='outside'
+                        textposition='outside',
+                        hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
                     ))
                     fig2.update_layout(
                         yaxis_title="시간(시간)",
@@ -215,7 +218,6 @@ def student_page():
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
         st.experimental_rerun()
-
 
 # ------------------ 관리자 페이지 ------------------
 def admin_page():
