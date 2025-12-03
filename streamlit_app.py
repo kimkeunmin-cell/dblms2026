@@ -78,23 +78,14 @@ def student_page():
 
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
             df_csv.columns = df_csv.columns.str.strip().str.replace('','').str.replace('','').str.replace(' ','_')
-            st.write(df_csv.columns)
-            st.dataframe(df_csv.head(10))
+
             # 필요한 컬럼만 필터링
             keep_cols = [
-                "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학_(시간)", "비문학 (시간)", "화언 (시간)", "국어 기타 (시간)", "국어합 (시간)",
-                "대수 (시간)", "미적 (시간)", "확통 (시간)", "수학 기타 (시간)", "수학합 (시간)",
-                "어휘 문법 (시간)", "듣기 (시간)", "독해 (시간)", "영어 기타 (시간)", "영어합 (시간)",
-                "통사 (시간)", "통과 (시간)", "탐구 기타 (시간)", "내신 기타 (시간)", "탐구합 (시간)", "전체합 (시간)"
+                "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학\n(시간)", "비문학\n(시간)", "화언\n(시간)", "국어\n기타\n(시간)", "국어합\n(시간)",
+                "대수\n(시간)", "미적\n(시간)", "확통\n(시간)", "수학\n기타\n(시간)", "수학합\n(시간)",
+                "어휘 문법\n(시간)", "듣기\n(시간)", "독해\n(시간)", "영어\n기타\n(시간)", "영어합\n(시간)",
+                "통사\n(시간)", "통과\n(시간)", "탐구\n기타\n(시간)", "내신\n기타\n(시간)", "탐구합\n(시간)", "전체합\n(시간)"
             ]
-            keep_column = []
-            for i in df_csv.columns:
-                if i not in keep_cols:
-                    st.write(str(i))
-                else:
-                    keep_column.append(i)
-                    
-            keep_cols = ["일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학\n(시간)"]
 
             df_csv = df_csv[keep_cols]
 
