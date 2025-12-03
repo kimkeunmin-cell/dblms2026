@@ -39,7 +39,7 @@ def login_page():
     login_clicked = st.button("로그인")
     if login_clicked:
         user = check_login(user_id, user_pw)
-        if user is not None:  # ⚠ 여기서 None 체크
+        if user is not None and not user.empty:  # ⚠ 여기서 None 체크
             st.session_state['logged_in'] = True
             st.session_state['user_id'] = user_id
             st.session_state['role'] = user.get('role', 'student')
