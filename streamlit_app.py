@@ -96,12 +96,6 @@ def student_page():
             st.write("컬럼 목록")
             st.write(df_csv.columns.tolist())
 
-("상위 10행 샘플 데이터")
-            st.dataframe(df_csv.head(10))
-
-            st.write("컬럼 목록")
-            st.write(df_csv.columns.tolist())
-
         except Exception as e:
             st.warning(f"CSV 로드 실패: {e}")
 
