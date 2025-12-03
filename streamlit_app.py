@@ -87,7 +87,13 @@ def student_page():
                 "어휘 문법 (시간)", "듣기 (시간)", "독해 (시간)", "영어 기타 (시간)", "영어합 (시간)",
                 "통사 (시간)", "통과 (시간)", "탐구 기타 (시간)", "내신 기타 (시간)", "탐구합 (시간)", "전체합 (시간)"
             ]
-
+            keep_column = []
+            for i in df_csv.columns:
+                if i not in keep_cols:
+                    st.write(i)
+                else:
+                    keep_column.append(i)
+                    
             keep_cols = ["일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학 (시간)"]
 
             df_csv = df_csv[keep_cols]
