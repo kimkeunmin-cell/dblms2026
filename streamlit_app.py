@@ -90,7 +90,7 @@ def student_page():
             keep_column = []
             for i in df_csv.columns:
                 if i not in keep_cols:
-                    st.write(i)
+                    st.write(str(i))
                 else:
                     keep_column.append(i)
                     
