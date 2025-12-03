@@ -169,10 +169,10 @@ def student_page():
         # ------- 탭 2: 목표 대비 평균 -------
         with tab2:
             st.subheader("📌 목표 대비 평균 비교")
-            if "목표" in df_range.columns:
+            if 1==1:
                 try:
                   # 목표값: CSV 첫 번째 행
-                    goal_values = pd.to_numeric(df_range.iloc[0][ANALYSIS_COLUMNS], errors='coerce').fillna(0)
+                    goal_values = pd.to_numeric(df_csv.iloc[0][ANALYSIS_COLUMNS], errors='coerce').fillna(0)
 
                   # 평균값: 첫 번째 행 제외 후 선택 기간 데이터
                     avg_values = pd.to_numeric(df_range[ANALYSIS_COLUMNS].iloc[1:], errors='coerce').fillna(0).mean()
@@ -210,7 +210,7 @@ def student_page():
                     )
                     st.plotly_chart(fig2, use_container_width=True, responsive=True)
                 except:
-                    st.warning("목표 컬럼 처리 중 오류 발생. CSV 2행에 목표 값이 있는지 확인해주세요.")
+                    st.warning("목표 컬럼 처리 중 오류 발생.")
             else:
                 st.warning("CSV에 '목표' 컬럼이 없습니다.")
 
