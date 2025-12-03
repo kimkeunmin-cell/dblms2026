@@ -72,8 +72,6 @@ def student_page():
             st.markdown(f"<a href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>", unsafe_allow_html=True)
 
         # ------------------ CSV로 변환 후 DataFrame ------------------
-        st.markdown("---")
-        st.subheader("CSV 데이터 확인")
         try:
             sheet_id = sheet_url.split('/d/')[1].split('/')[0]
             csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
