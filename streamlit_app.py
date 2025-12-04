@@ -199,7 +199,8 @@ def student_page():
         yaxis_title="날짜",
         yaxis={'autorange':'reversed'},
         height=600,
-        template="plotly_white"
+        template="plotly_white",
+        legend_traceorder='normal'
     )
     st.plotly_chart(fig, use_container_width=True)
 
