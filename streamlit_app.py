@@ -200,7 +200,8 @@ def student_page():
         yaxis={'autorange':'reversed'},
         height=600,
         template="plotly_white",
-        legend_traceorder='normal'
+        legend_traceorder='normal',
+        colorway=px.colors.qualitative.Pastel
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -229,7 +230,8 @@ def student_page():
         text=goal_values.round(2),
         texttemplate='%{text}',
         textposition='outside',
-        hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
+        hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>',
+        colorway=px.colors.qualitative.Pastel
     ))
     fig2.update_layout(
         yaxis_title="시간(시간)",
