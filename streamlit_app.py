@@ -74,11 +74,6 @@ def student_page():
                 transition: all 0.2s ease;
             }
 
-            /* 마우스 오버 */
-            .toggle-btn:hover {
-                background: #e4e7ec;
-            }
-
 
             /* Google Sheet 버튼 */
             .open-sheet-btn {
