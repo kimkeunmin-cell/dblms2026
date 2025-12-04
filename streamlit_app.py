@@ -66,9 +66,9 @@ def student_page():
     if sheet_url:
         st.markdown("<div class='section-title'>📱 화면 환경 선택</div>", unsafe_allow_html=True)
         st.markdown("<div class='radio-box'>", unsafe_allow_html=True)
-        device = st.radio("PC 또는 모바일", ["PC", "모바일"], label_visibility="collapsed")
+        device = st.radio("PC(컴퓨터, 노트북) 또는 모바일(폰, 태블릿)", ["PC(컴퓨터, 노트북)", "모바일(폰, 태블릿)"], label_visibility="collapsed")
         st.markdown("</div>", unsafe_allow_html=True)
-        if device == "PC":
+        if device == "PC(컴퓨터, 노트북)":
             try:
                 pc_url = sheet_url + "&widget=true&headers=true"
                 st.components.v1.html(
