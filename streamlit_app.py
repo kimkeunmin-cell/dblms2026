@@ -60,6 +60,32 @@ def student_page():
                 margin: 10px 0 20px 0;
             }
 
+            /* 기본 버튼 */
+            .toggle-btn {
+                flex: 1;
+                padding: 12px 0;
+                border-radius: 12px;
+                background: #f0f2f6;
+                border: 1px solid #d0d0d0;
+                text-align: center;
+                font-weight: 600;
+                color: #555;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            /* 마우스 오버 */
+            .toggle-btn:hover {
+                background: #e4e7ec;
+            }
+
+            /* 선택된 버튼 */
+            .toggle-btn-selected {
+                background: #4a8af4;
+                color: white;
+                border-color: #2a6ad8;
+                box-shadow: 0 4px 10px rgba(74, 138, 244, 0.4);
+            }
 
             /* Google Sheet 버튼 */
             .open-sheet-btn {
@@ -112,18 +138,16 @@ def student_page():
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("💻 PC 화면", key="pc_btn"):
+        if st.button("💻 PC(컴퓨터, 노트북)", key="pc_btn"):
             st.session_state["device"] = "PC"
         st.markdown(
-            f"<div class='toggle-btn {pc_selected}'>PC 화면</div>",
             unsafe_allow_html=True
         )
 
     with col2:
-        if st.button("📱 모바일", key="mobile_btn"):
+        if st.button("📱 모바일(핸드폰, 태블릿)", key="mobile_btn"):
             st.session_state["device"] = "모바일"
         st.markdown(
-            f"<div class='toggle-btn {mobile_selected}'>모바일</div>",
             unsafe_allow_html=True
         )
 
