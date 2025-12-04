@@ -140,16 +140,10 @@ def student_page():
     with col1:
         if st.button("💻 PC(컴퓨터, 노트북)", key="pc_btn"):
             st.session_state["device"] = "PC"
-        st.markdown(
-            unsafe_allow_html=True
-        )
 
     with col2:
         if st.button("📱 모바일(핸드폰, 태블릿)", key="mobile_btn"):
             st.session_state["device"] = "모바일"
-        st.markdown(
-            unsafe_allow_html=True
-        )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
