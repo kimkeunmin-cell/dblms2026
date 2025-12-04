@@ -201,7 +201,9 @@ def student_page():
         height=600,
         template="plotly_white",
         legend_traceorder='normal',
-        colorway=px.colors.qualitative.Pastel
+        colorway=px.colors.qualitative.Pastel,
+        title=dict(font=dict(size=20)),
+        legend=dict(font=dict(size=14)
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -230,8 +232,7 @@ def student_page():
         text=goal_values.round(2),
         texttemplate='%{text}',
         textposition='outside',
-        hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>',
-        colorway=px.colors.qualitative.Pastel
+        hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
     ))
     fig2.update_layout(
         yaxis_title="시간(시간)",
@@ -239,7 +240,10 @@ def student_page():
         xaxis=dict(tickangle=-45),
         height=500,
         barmode='group',
-        template="plotly_white"
+        template="plotly_white",
+        colorway=px.colors.qualitative.Pastel,
+        title=dict(font=dict(size=20)),
+        legend=dict(font=dict(size=14)
     )
     st.plotly_chart(fig2, use_container_width=True)
 
