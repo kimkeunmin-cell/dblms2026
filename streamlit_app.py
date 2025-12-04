@@ -240,7 +240,7 @@ def student_page():
         yaxis_title="시간(시간)",
         xaxis_title="항목",
         xaxis=dict(tickangle=-45),
-        height=500,
+        height=600,
         barmode='group',
         template="plotly_white",
         colorway=px.colors.qualitative.Pastel
