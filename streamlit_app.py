@@ -205,7 +205,7 @@ def student_page():
         legend_traceorder='normal',
         colorway=px.colors.qualitative.Pastel
     )
-    fig.update_traces(textfont_size=16)
+    fig.update_traces(textfont_size=14)
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -245,7 +245,7 @@ def student_page():
         template="plotly_white",
         colorway=px.colors.qualitative.Pastel
     )
-    fig2.update_traces(textfont_size=16)
+    fig2.update_traces(textfont_size=14)
 
     st.plotly_chart(fig2, use_container_width=True)
 
