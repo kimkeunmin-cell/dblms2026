@@ -79,13 +79,6 @@ def student_page():
                 background: #e4e7ec;
             }
 
-            /* 선택된 버튼 */
-            .toggle-btn-selected {
-                background: #4a8af4;
-                color: white;
-                border-color: #2a6ad8;
-                box-shadow: 0 4px 10px rgba(74, 138, 244, 0.4);
-            }
 
             /* Google Sheet 버튼 */
             .open-sheet-btn {
