@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import datetime
+import plotly.express as px
+
 
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
