@@ -63,19 +63,6 @@ def student_page():
     except Exception as e:
         st.warning(f"sheets.csv 읽기 실패: {e}")
 
-    if not sheet_url:
-        st.warning("해당 학생의 시트 정보가 없습니다.")
-        return
-    # ------------------ Google Sheet URL 가져오기 ------------------
-    sheet_url = None
-    try:
-        df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
-        row = df_sheets[df_sheets['id'] == st.session_state['user_id']]
-        if not row.empty:
-            sheet_url = row.iloc[0]['sheet_url']
-    except Exception as e:
-        st.warning(f"sheets.csv 읽기 실패: {e}")
-
     if sheet_url:
         st.markdown("<div class='section-title'>📱 화면 환경 선택</div>", unsafe_allow_html=True)
         st.markdown("<div class='radio-box'>", unsafe_allow_html=True)
