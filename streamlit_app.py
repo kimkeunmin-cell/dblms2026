@@ -60,20 +60,6 @@ def student_page():
                 margin: 10px 0 20px 0;
             }
 
-            /* 기본 버튼 */
-            .toggle-btn {
-                flex: 1;
-                padding: 12px 0;
-                border-radius: 12px;
-                background: #f0f2f6;
-                border: 1px solid #d0d0d0;
-                text-align: center;
-                font-weight: 600;
-                color: #555;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-
 
             /* Google Sheet 버튼 */
             .open-sheet-btn {
