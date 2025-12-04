@@ -51,6 +51,63 @@ def login_page():
 
 # ------------------ 학생 페이지 ------------------
 def student_page():
+    st.markdown("""
+        <style>
+            /* 토글 버튼 컨테이너 */
+            .toggle-container {
+                display: flex;
+                gap: 10px;
+                margin: 10px 0 20px 0;
+            }
+
+            /* 기본 버튼 */
+            .toggle-btn {
+                flex: 1;
+                padding: 12px 0;
+                border-radius: 12px;
+                background: #f0f2f6;
+                border: 1px solid #d0d0d0;
+                text-align: center;
+                font-weight: 600;
+                color: #555;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            /* 마우스 오버 */
+            .toggle-btn:hover {
+                background: #e4e7ec;
+            }
+
+            /* 선택된 버튼 */
+            .toggle-btn-selected {
+                background: #4a8af4;
+                color: white;
+                border-color: #2a6ad8;
+                box-shadow: 0 4px 10px rgba(74, 138, 244, 0.4);
+            }
+
+            /* Google Sheet 버튼 */
+            .open-sheet-btn {
+                display: inline-block;
+                padding: 12px 20px;
+                margin-top: 15px;
+                border-radius: 10px;
+                font-weight: 600;
+                color: white !important;
+                background: linear-gradient(135deg, #4a8af4, #567dfc);
+                text-decoration: none;
+                box-shadow: 0 4px 10px rgba(74, 138, 244, 0.35);
+                transition: 0.2s ease;
+            }
+
+            .open-sheet-btn:hover {
+                background: linear-gradient(135deg, #3f7aec, #4a6ef5);
+                box-shadow: 0 5px 14px rgba(74, 138, 244, 0.45);
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     st.title(f"학생 페이지 - {st.session_state['user_id']}")
 
     # ------------------ Google Sheet URL 가져오기 ------------------
@@ -63,26 +120,60 @@ def student_page():
     except Exception as e:
         st.warning(f"sheets.csv 읽기 실패: {e}")
 
-    if sheet_url:
-        st.markdown("<div class='section-title'>📱 화면 환경 선택</div>", unsafe_allow_html=True)
-        st.markdown("<div class='radio-box'>", unsafe_allow_html=True)
-        device = st.radio("PC(컴퓨터, 노트북) 또는 모바일(폰, 태블릿)", ["PC(컴퓨터, 노트북)", "모바일(폰, 태블릿)"], label_visibility="collapsed")
-        st.markdown("</div>", unsafe_allow_html=True)
-        if device == "PC(컴퓨터, 노트북)":
-            try:
-                pc_url = sheet_url + "&widget=true&headers=true"
-                st.components.v1.html(
-                    f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none; border-radius:12px;'></iframe>",
-                    height=600
-                )
-            except Exception as e:
-                st.warning(f"iframe 렌더링 실패: {e}")
+    if not sheet_url:
+        return
 
-        else:
-            st.markdown(
-                f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
-                unsafe_allow_html=True
+    st.markdown("<div class='section-title'>📱 화면 환경 선택</div>", unsafe_allow_html=True)
+
+    # 저장된 선택값 유지
+    if "device" not in st.session_state:
+        st.session_state["device"] = "PC"
+
+    # ------------------ 토글 버튼 랜더링 ------------------
+    st.markdown("<div class='toggle-container'>", unsafe_allow_html=True)
+
+    pc_selected = "toggle-btn-selected" if st.session_state["device"] == "PC" else ""
+    mobile_selected = "toggle-btn-selected" if st.session_state["device"] == "모바일" else ""
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("💻 PC 화면", key="pc_btn"):
+            st.session_state["device"] = "PC"
+        st.markdown(
+            f"<div class='toggle-btn {pc_selected}'>PC 화면</div>",
+            unsafe_allow_html=True
+        )
+
+    with col2:
+        if st.button("📱 모바일", key="mobile_btn"):
+            st.session_state["device"] = "모바일"
+        st.markdown(
+            f"<div class='toggle-btn {mobile_selected}'>모바일</div>",
+            unsafe_allow_html=True
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ------------------ 화면 전환 ------------------
+    device = st.session_state["device"]
+
+    if device == "PC":
+        try:
+            pc_url = sheet_url + "&widget=true&headers=true"
+            st.components.v1.html(
+                f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none; border-radius:12px;'></iframe>",
+                height=600
             )
+        except Exception as e:
+            st.warning(f"iframe 렌더링 실패: {e}")
+
+    else:
+        st.markdown(
+            f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
+            unsafe_allow_html=True
+        )
+
 
     # ------------------ CSV 로드 ------------------
     try:
