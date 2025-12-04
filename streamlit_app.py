@@ -66,6 +66,36 @@ def student_page():
     if not sheet_url:
         st.warning("해당 학생의 시트 정보가 없습니다.")
         return
+    # ------------------ Google Sheet URL 가져오기 ------------------
+    sheet_url = None
+    try:
+        df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
+        row = df_sheets[df_sheets['id'] == st.session_state['user_id']]
+        if not row.empty:
+            sheet_url = row.iloc[0]['sheet_url']
+    except Exception as e:
+        st.warning(f"sheets.csv 읽기 실패: {e}")
+
+    if sheet_url:
+        st.markdown("<div class='section-title'>📱 화면 환경 선택</div>", unsafe_allow_html=True)
+        st.markdown("<div class='radio-box'>", unsafe_allow_html=True)
+        device = st.radio("PC 또는 모바일", ["PC", "모바일"], label_visibility="collapsed")
+        st.markdown("</div>", unsafe_allow_html=True)
+        if device == "PC":
+            try:
+                pc_url = sheet_url + "&widget=true&headers=true"
+                st.components.v1.html(
+                    f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none; border-radius:12px;'></iframe>",
+                    height=600
+                )
+            except Exception as e:
+                st.warning(f"iframe 렌더링 실패: {e}")
+
+        else:
+            st.markdown(
+                f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
+                unsafe_allow_html=True
+            )
 
     # ------------------ Google Sheet iframe/링크 표시 ------------------
     device = st.radio("PC 또는 모바일", ["PC", "모바일"])
