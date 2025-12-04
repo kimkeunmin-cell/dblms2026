@@ -84,20 +84,6 @@ def student_page():
                 unsafe_allow_html=True
             )
 
-    # ------------------ Google Sheet iframe/링크 표시 ------------------
-    device = st.radio("PC 또는 모바일", ["PC", "모바일"])
-    if device == "PC":
-        try:
-            pc_url = sheet_url + "&widget=true&headers=true"
-            st.components.v1.html(
-                f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none;'></iframe>",
-                height=600
-            )
-        except Exception as e:
-            st.warning(f"iframe 렌더링 실패: {e}")
-    else:
-        st.markdown(f"<a href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>", unsafe_allow_html=True)
-
     # ------------------ CSV 로드 ------------------
     try:
         sheet_id = sheet_url.split('/d/')[1].split('/')[0]
