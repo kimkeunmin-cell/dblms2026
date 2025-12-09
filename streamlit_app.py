@@ -170,257 +170,257 @@ def student_page():
                 unsafe_allow_html=True
             )
 
-    # ------------------ Google Sheet URL 가져오기 ------------------
-    sheet_url = None
-    try:
-        df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
-        row = df_sheets[df_sheets['id'] == st.session_state['user_id']]
-        if not row.empty:
-            sheet_url = row.iloc[0]['sheet_url']
-    except Exception as e:
-        st.warning(f"sheets.csv 읽기 실패: {e}")
+        # ------------------ Google Sheet URL 가져오기 ------------------
+        sheet_url = None
+        try:
+            df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
+            row = df_sheets[df_sheets['id'] == st.session_state['user_id']]
+            if not row.empty:
+                sheet_url = row.iloc[0]['sheet_url']
+        except Exception as e:
+            st.warning(f"sheets.csv 읽기 실패: {e}")
 
-    if not sheet_url:
-        return
+        if not sheet_url:
+            return
 
 
-    # ------------------ CSV 로드 ------------------
-    try:
-        sheet_id = sheet_url.split('/d/')[1].split('/')[0]
-        csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
-        df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
+        # ------------------ CSV 로드 ------------------
+        try:
+            sheet_id = sheet_url.split('/d/')[1].split('/')[0]
+            csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
+            df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
 
-        # 컬럼 정규화
-        df_csv.columns = (
-            df_csv.columns
-            .str.strip()
-            .str.replace('\r','',regex=False)
-            .str.replace('\n','',regex=False)
-            .str.replace(' ','',regex=False)
-            .str.replace('　','',regex=False)
+            # 컬럼 정규화
+            df_csv.columns = (
+                df_csv.columns
+                .str.strip()
+                .str.replace('\r','',regex=False)
+                .str.replace('\n','',regex=False)
+                .str.replace(' ','',regex=False)
+                .str.replace('　','',regex=False)
+            )
+
+        except Exception as e:
+            st.warning(f"CSV 로드 실패: {e}")
+            return
+
+        # ------------------ 날짜 범위 선택 ------------------
+        st.markdown("---")
+        st.subheader("📊 시각화를 위한 기간 선택")
+        try:
+            df_csv["일시"] = pd.to_datetime(df_csv["일시"], errors='coerce')
+            df_csv = df_csv.dropna(subset=["일시"])
+        except:
+            st.error("❌ '일시' 컬럼 날짜 변환 실패.")
+            return
+    
+    
+        min_date = df_csv["일시"].min().date()
+        max_date = df_csv["일시"].max().date()
+
+        # 기본값: 오늘 기준 1주일 전 ~ 오늘
+        today = datetime.date.today()
+        default_start = max(today - datetime.timedelta(days=7), min_date)
+        default_end = min(today, max_date)
+
+        # 범위가 유효하지 않으면 데이터의 첫 날짜부터 8일
+        if default_start > max_date or default_end < min_date:
+            default_start = min_date
+            default_end = min(min_date + datetime.timedelta(days=7), max_date)
+
+        start_date = st.date_input(
+            "📅 시작 날짜",
+            value=default_start,
+            min_value=min_date,
+            max_value=max_date,
+            key='start_date_picker'
+            )
+        end_date = st.date_input(
+            "📅 종료 날짜",
+            value=default_end,
+            min_value=min_date,
+            max_value=max_date,
+            key='end_date_picker'
+            )
+
+        min_date = df_csv["일시"].min()
+        max_date = df_csv["일시"].max()
+    
+        if start_date > end_date:
+            st.warning("⚠ 종료 날짜가 시작 날짜보다 빠를 수 없습니다.")
+            return
+
+        df_range = df_csv[(df_csv["일시"] >= pd.to_datetime(start_date)) &
+                          (df_csv["일시"] <= pd.to_datetime(end_date))]
+
+        st.markdown("---")
+        st.subheader("선택 날짜 범위 데이터")
+        # 원하는 컬럼만 선택
+        display_cols = [
+        "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학(시간)", "비문학(시간)", "화언(시간)", "국어기타(시간)", "국어합(시간)",
+        "대수(시간)", "미적(시간)", "확통(시간)", "수학기타(시간)", "수학합(시간)",
+        "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
+        "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "전체합(시간)"]
+        
+        df_display = df_range.copy()
+
+        # 일시 컬럼을 yyyy-mm-dd 형식으로 변환
+        df_display["일시"] = df_display["일시"].dt.strftime("%Y-%m-%d")
+
+        # 선택한 컬럼만 남기기
+        df_display = df_display[[col for col in display_cols if col in df_display.columns]]
+        df_display = df_display.round(2)
+        st.dataframe(df_display)
+    
+        # ------------------ 그룹 + 변수 선택 ------------------
+        st.markdown("---")
+        st.subheader("그룹 선택 및 변수 선택")
+        selected_group = st.selectbox("그룹 선택", list(GROUPS.keys()))
+        variables = GROUPS[selected_group]
+        selected_vars = st.multiselect("변수 선택", variables, default=variables)
+    
+        if not selected_vars:
+            st.info("하나 이상의 변수를 선택해주세요.")
+            return
+
+        # ------------------ 누적 막대 그래프 ------------------
+        st.markdown("---")
+        st.subheader("📊 누적 막대 그래프")
+        fig = go.Figure()
+        for var in selected_vars:
+            fig.add_trace(go.Bar(
+                y=df_range["일시"].dt.strftime("%Y-%m-%d"),
+                x=pd.to_numeric(df_range[var], errors='coerce').fillna(0),
+                orientation='h',
+                name=var,
+                text=pd.to_numeric(df_range[var], errors='coerce').fillna(0).round(2),
+                texttemplate='%{text}',
+                textposition='inside',
+                hovertemplate='(%{y}) %{x:.2f}시간<extra></extra>'
+            ))
+        fig.update_layout(
+            barmode='stack',
+            xaxis_title="시간(시간)",
+            yaxis_title="날짜",
+            yaxis={'autorange':'reversed'},
+            height=600,
+            template="plotly_white",
+            legend_traceorder='normal',
+            colorway=px.colors.qualitative.Pastel
         )
+        fig.update_traces(textfont_size=14)
 
-    except Exception as e:
-        st.warning(f"CSV 로드 실패: {e}")
-        return
+        st.plotly_chart(fig, use_container_width=True)
 
-    # ------------------ 날짜 범위 선택 ------------------
-    st.markdown("---")
-    st.subheader("📊 시각화를 위한 기간 선택")
-    try:
-        df_csv["일시"] = pd.to_datetime(df_csv["일시"], errors='coerce')
-        df_csv = df_csv.dropna(subset=["일시"])
-    except:
-        st.error("❌ '일시' 컬럼 날짜 변환 실패.")
-        return
+        # ------------------ 목표 대비 평균 그래프 ------------------
+        st.markdown("---")
+        st.subheader("🎯 목표 대비 평균 비교")
+
+        # --- 안전한 수치 변환 (문자열/빈값 대비) ---
+        goal_raw = df_csv[selected_vars].iloc[0]  # 원래 코드
+        goal_num = goal_raw.apply(pd.to_numeric, errors='coerce')  # NaN 허용
+        avg_num = df_range[selected_vars].apply(pd.to_numeric, errors='coerce').mean()
     
+        # --- 리스트 생성: 텍스트, hover_text, color 등 ---
+        avg_texts = []
+        avg_hover = []
+        goal_texts = []
+        goal_hover = []
+        colors_dynamic = []
 
-    min_date = df_csv["일시"].min().date()
-    max_date = df_csv["일시"].max().date()
+        for var in selected_vars:
+            g = goal_num.get(var, np.nan)
+            a = avg_num.get(var, np.nan)
 
-    # 기본값: 오늘 기준 1주일 전 ~ 오늘
-    today = datetime.date.today()
-    default_start = max(today - datetime.timedelta(days=7), min_date)
-    default_end = min(today, max_date)
+            # 평균 텍스트 (항상 표시)
+            if pd.isna(a):
+                avg_text = ""
+                avg_hover_text = f"({var}) 평균: -"
+            else:
+                avg_text = f"{a:.2f}"
+                avg_hover_text = f"({var}) 평균: {a:.2f}시간"
 
-    # 범위가 유효하지 않으면 데이터의 첫 날짜부터 8일
-    if default_start > max_date or default_end < min_date:
-        default_start = min_date
-        default_end = min(min_date + datetime.timedelta(days=7), max_date)
+            # 목표 텍스트
+            if pd.isna(g):
+                goal_text = ""
+                goal_hover_text = f"({var}) 목표: -"
+            else:
+                goal_text = f"{g:.2f}"
+                goal_hover_text = f"({var}) 목표: {g:.2f}시간"
 
-    start_date = st.date_input(
-        "📅 시작 날짜",
-        value=default_start,
-        min_value=min_date,
-        max_value=max_date,
-        key='start_date_picker'
-        )
-    end_date = st.date_input(
-        "📅 종료 날짜",
-        value=default_end,
-        min_value=min_date,
-        max_value=max_date,
-        key='end_date_picker'
-        )
-
-    min_date = df_csv["일시"].min()
-    max_date = df_csv["일시"].max()
+            # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
+            if pd.isna(g) or g == 0:
+                pct_part = ""  # 퍼센트 표시 없음
+                colors_dynamic.append("#9e9e9e")  # gray for undefined target
+                # hover에 퍼센트 없음
+                avg_hover_text += ""
+            else:
+                # 퍼센트 계산 (평균이 NaN이면 NaN 처리)
+                pct = ((a) / g * 100) if (not pd.isna(a)) else np.nan
+                if pd.isna(pct):
+                    pct_part = ""
+                else:
+                    pct_part = f" ({pct:+.1f}%)"  # + / - 포함해서 표시
+                # 색: 달성(녹색) vs 미달(빨강)
+                if not pd.isna(a) and a >= g:
+                    colors_dynamic.append("#2ecc71")  # green
+                else:
+                    colors_dynamic.append("#e74c3c")  # red
     
-    if start_date > end_date:
-        st.warning("⚠ 종료 날짜가 시작 날짜보다 빠를 수 없습니다.")
-        return
+                avg_hover_text += f"<br>목표 대비: {pct:+.1f}%"
 
-    df_range = df_csv[(df_csv["일시"] >= pd.to_datetime(start_date)) &
-                      (df_csv["일시"] <= pd.to_datetime(end_date))]
+            # 평균 막대 위 텍스트 (h 단위 표기를 기존 스타일에 맞춰 유지)
+            avg_texts.append(f"{avg_text}시간{pct_part}" if avg_text != "" else "")
+            avg_hover.append(avg_hover_text)
 
-    st.markdown("---")
-    st.subheader("선택 날짜 범위 데이터")
-    # 원하는 컬럼만 선택
-    display_cols = [
-    "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학(시간)", "비문학(시간)", "화언(시간)", "국어기타(시간)", "국어합(시간)",
-    "대수(시간)", "미적(시간)", "확통(시간)", "수학기타(시간)", "수학합(시간)",
-    "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
-    "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "전체합(시간)"]
+            # 목표 막대 텍스트 / hover
+            goal_texts.append(f"{goal_text}시간" if goal_text != "" else "")
+            goal_hover.append(goal_hover_text)
     
-    df_display = df_range.copy()
-
-    # 일시 컬럼을 yyyy-mm-dd 형식으로 변환
-    df_display["일시"] = df_display["일시"].dt.strftime("%Y-%m-%d")
-
-    # 선택한 컬럼만 남기기
-    df_display = df_display[[col for col in display_cols if col in df_display.columns]]
-    df_display = df_display.round(2)
-    st.dataframe(df_display)
+        # --- Plotly 차트 구성 ---
+        fig2 = go.Figure()
     
-    # ------------------ 그룹 + 변수 선택 ------------------
-    st.markdown("---")
-    st.subheader("그룹 선택 및 변수 선택")
-    selected_group = st.selectbox("그룹 선택", list(GROUPS.keys()))
-    variables = GROUPS[selected_group]
-    selected_vars = st.multiselect("변수 선택", variables, default=variables)
-
-    if not selected_vars:
-        st.info("하나 이상의 변수를 선택해주세요.")
-        return
-
-    # ------------------ 누적 막대 그래프 ------------------
-    st.markdown("---")
-    st.subheader("📊 누적 막대 그래프")
-    fig = go.Figure()
-    for var in selected_vars:
-        fig.add_trace(go.Bar(
-            y=df_range["일시"].dt.strftime("%Y-%m-%d"),
-            x=pd.to_numeric(df_range[var], errors='coerce').fillna(0),
-            orientation='h',
-            name=var,
-            text=pd.to_numeric(df_range[var], errors='coerce').fillna(0).round(2),
+        # 평균값 Bar (개별 색/텍스트/hover 적용)
+        fig2.add_trace(go.Bar(
+            x=selected_vars,
+            y=[float(x) if not pd.isna(x) else 0 for x in avg_num.values],   
+            name="평균",
+            marker_color=colors_dynamic,
+            text=avg_texts,
             texttemplate='%{text}',
-            textposition='inside',
-            hovertemplate='(%{y}) %{x:.2f}시간<extra></extra>'
+            textposition='outside',
+            hovertext=avg_hover,
+            hovertemplate='%{hovertext}<extra></extra>'
         ))
-    fig.update_layout(
-        barmode='stack',
-        xaxis_title="시간(시간)",
-        yaxis_title="날짜",
-        yaxis={'autorange':'reversed'},
-        height=600,
-        template="plotly_white",
-        legend_traceorder='normal',
-        colorway=px.colors.qualitative.Pastel
-    )
-    fig.update_traces(textfont_size=14)
 
-    st.plotly_chart(fig, use_container_width=True)
+        # 목표값 Bar
+        fig2.add_trace(go.Bar(
+            x=selected_vars,
+            y=[float(x) if not pd.isna(x) else 0 for x in goal_num.values],
+            name="목표",
+            marker_color='orange',
+            text=goal_texts,
+            texttemplate='%{text}',
+            textposition='outside',
+            hovertext=goal_hover,
+            hovertemplate='%{hovertext}<extra></extra>'
+        ))
 
-    # ------------------ 목표 대비 평균 그래프 ------------------
-    st.markdown("---")
-    st.subheader("🎯 목표 대비 평균 비교")
+        # 레이아웃 유지 + 약간의 margin 조정
+        fig2.update_layout(
+            yaxis_title="시간(시간)",
+            xaxis_title="항목",
+            xaxis=dict(tickangle=-45),
+            height=600,
+            barmode='group',
+            template="plotly_white",
+            colorway=px.colors.qualitative.Pastel,
+            margin=dict(l=30, r=30, t=50, b=150)
+        )
 
-    # --- 안전한 수치 변환 (문자열/빈값 대비) ---
-    goal_raw = df_csv[selected_vars].iloc[0]  # 원래 코드
-    goal_num = goal_raw.apply(pd.to_numeric, errors='coerce')  # NaN 허용
-    avg_num = df_range[selected_vars].apply(pd.to_numeric, errors='coerce').mean()
+        fig2.update_traces(textfont_size=14)
 
-    # --- 리스트 생성: 텍스트, hover_text, color 등 ---
-    avg_texts = []
-    avg_hover = []
-    goal_texts = []
-    goal_hover = []
-    colors_dynamic = []
-
-    for var in selected_vars:
-        g = goal_num.get(var, np.nan)
-        a = avg_num.get(var, np.nan)
-
-        # 평균 텍스트 (항상 표시)
-        if pd.isna(a):
-            avg_text = ""
-            avg_hover_text = f"({var}) 평균: -"
-        else:
-            avg_text = f"{a:.2f}"
-            avg_hover_text = f"({var}) 평균: {a:.2f}시간"
-
-        # 목표 텍스트
-        if pd.isna(g):
-            goal_text = ""
-            goal_hover_text = f"({var}) 목표: -"
-        else:
-            goal_text = f"{g:.2f}"
-            goal_hover_text = f"({var}) 목표: {g:.2f}시간"
-
-        # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
-        if pd.isna(g) or g == 0:
-            pct_part = ""  # 퍼센트 표시 없음
-            colors_dynamic.append("#9e9e9e")  # gray for undefined target
-            # hover에 퍼센트 없음
-            avg_hover_text += ""
-        else:
-            # 퍼센트 계산 (평균이 NaN이면 NaN 처리)
-            pct = ((a) / g * 100) if (not pd.isna(a)) else np.nan
-            if pd.isna(pct):
-                pct_part = ""
-            else:
-                pct_part = f" ({pct:+.1f}%)"  # + / - 포함해서 표시
-            # 색: 달성(녹색) vs 미달(빨강)
-            if not pd.isna(a) and a >= g:
-                colors_dynamic.append("#2ecc71")  # green
-            else:
-                colors_dynamic.append("#e74c3c")  # red
-
-            avg_hover_text += f"<br>목표 대비: {pct:+.1f}%"
-
-        # 평균 막대 위 텍스트 (h 단위 표기를 기존 스타일에 맞춰 유지)
-        avg_texts.append(f"{avg_text}시간{pct_part}" if avg_text != "" else "")
-        avg_hover.append(avg_hover_text)
-
-        # 목표 막대 텍스트 / hover
-        goal_texts.append(f"{goal_text}시간" if goal_text != "" else "")
-        goal_hover.append(goal_hover_text)
-
-    # --- Plotly 차트 구성 ---
-    fig2 = go.Figure()
-
-    # 평균값 Bar (개별 색/텍스트/hover 적용)
-    fig2.add_trace(go.Bar(
-        x=selected_vars,
-        y=[float(x) if not pd.isna(x) else 0 for x in avg_num.values],   
-        name="평균",
-        marker_color=colors_dynamic,
-        text=avg_texts,
-        texttemplate='%{text}',
-        textposition='outside',
-        hovertext=avg_hover,
-        hovertemplate='%{hovertext}<extra></extra>'
-    ))
-
-    # 목표값 Bar
-    fig2.add_trace(go.Bar(
-        x=selected_vars,
-        y=[float(x) if not pd.isna(x) else 0 for x in goal_num.values],
-        name="목표",
-        marker_color='orange',
-        text=goal_texts,
-        texttemplate='%{text}',
-        textposition='outside',
-        hovertext=goal_hover,
-        hovertemplate='%{hovertext}<extra></extra>'
-    ))
-
-    # 레이아웃 유지 + 약간의 margin 조정
-    fig2.update_layout(
-        yaxis_title="시간(시간)",
-        xaxis_title="항목",
-        xaxis=dict(tickangle=-45),
-        height=600,
-        barmode='group',
-        template="plotly_white",
-        colorway=px.colors.qualitative.Pastel,
-        margin=dict(l=30, r=30, t=50, b=150)
-    )
-
-    fig2.update_traces(textfont_size=14)
-
-    st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True)
 
     # --------------------------------------------
     # 📊 TAB 2: 주간별 리포트 — 사전 설정된 기간
