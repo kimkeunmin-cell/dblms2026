@@ -137,9 +137,6 @@ def student_page():
 
     col1, col2 = st.columns(2)
     
-    # 모바일 최적화 URL (무조건 먼저 정의해야 함)
-    htmlview_url = sheet_url.replace("/edit", "/htmlview")
-
     with col1:
         if st.button("💻 PC(컴퓨터, 노트북)", key="pc_btn"):
             st.session_state["device"] = "PC"
@@ -152,7 +149,7 @@ def student_page():
 
     # ------------------ 화면 전환 ------------------
     device = st.session_state["device"]
-    st.markdown('미리보기는 PC버전입니다. 모바일로 입력하려면 모바일 버튼을 눌러주세요.)
+    st.markdown('미리보기는 PC버전입니다. 모바일로 입력하려면 모바일 버튼을 눌러주세요.')
     if device == "PC":
         try:
             pc_url = sheet_url + "&widget=true&headers=true"
