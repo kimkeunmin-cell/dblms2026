@@ -161,6 +161,14 @@ def student_page():
             st.warning(f"iframe 렌더링 실패: {e}")
 
     else:
+        st.components.v1.html(
+            f"""
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <iframe class="sheet-frame" src="{htmlview_url}"></iframe>
+            """,
+            height=800,
+            scrolling=True
+        )
         st.markdown(
             f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
             unsafe_allow_html=True
