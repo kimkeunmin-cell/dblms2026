@@ -354,7 +354,7 @@ def student_page():
             avg_hover_text += f"<br>목표 대비: {pct:+.1f}%"
 
         # 평균 막대 위 텍스트 (h 단위 표기를 기존 스타일에 맞춰 유지)
-        avg_texts.append(f"{avg_text}h{pct_part}" if avg_text != "" else "")
+        avg_texts.append(f"{avg_text}시간{pct_part}" if avg_text != "" else "")
         avg_hover.append(avg_hover_text)
 
         # 목표 막대 텍스트 / hover
@@ -406,46 +406,6 @@ def student_page():
 
     st.plotly_chart(fig2, use_container_width=True)
 
-    '''
-    goal_values = df_csv[selected_vars].iloc[0]
-    avg_values = df_range[selected_vars].mean()
-               
-    pct_change = (((avg_values - goal_values) / goal_values) * 100).round(1)
-    
-    fig2 = go.Figure()
-    fig2.add_trace(go.Bar(
-        x=selected_vars,
-        y=avg_values.round(2),
-        name="평균",
-        marker_color='skyblue',
-        text=avg_values.round(2),
-        texttemplate='%{text}',
-        textposition='outside',
-        hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
-    ))
-    fig2.add_trace(go.Bar(
-        x=selected_vars,
-        y=goal_values.round(2),
-        name="목표",
-        marker_color='orange',
-        text=goal_values.round(2),
-        texttemplate='%{text}',
-        textposition='outside',
-        hovertemplate='(%{x}) %{y:.2f}시간<extra></extra>'
-    ))
-    fig2.update_layout(
-        yaxis_title="시간(시간)",
-        xaxis_title="항목",
-        xaxis=dict(tickangle=-45),
-        height=600,
-        barmode='group',
-        template="plotly_white",
-        colorway=px.colors.qualitative.Pastel
-    )
-    fig2.update_traces(textfont_size=14)
-
-    st.plotly_chart(fig2, use_container_width=True)
-    '''
 
     # ------------------ 로그아웃 ------------------
     if st.button("🔙 로그아웃"):
