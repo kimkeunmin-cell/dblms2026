@@ -154,6 +154,20 @@ def student_page():
         # ------------------ 화면 전환 ------------------
         device = st.session_state["device"]
         st.markdown('미리보기는 PC버전입니다. 모바일로 입력하려면 모바일 버튼을 눌러주세요.')
+
+        # ------------------ Google Sheet URL 가져오기 ------------------
+        sheet_url = None
+        try:
+            df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
+            row = df_sheets[df_sheets['id'] == st.session_state['user_id']]
+            if not row.empty:
+                sheet_url = row.iloc[0]['sheet_url']
+        except Exception as e:
+            st.warning(f"sheets.csv 읽기 실패: {e}")
+
+        if not sheet_url:
+            return
+
         if device == "PC":
             try:
                 pc_url = sheet_url + "&widget=true&headers=true"
@@ -169,20 +183,6 @@ def student_page():
                 f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
                 unsafe_allow_html=True
             )
-
-        # ------------------ Google Sheet URL 가져오기 ------------------
-        sheet_url = None
-        try:
-            df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
-            row = df_sheets[df_sheets['id'] == st.session_state['user_id']]
-            if not row.empty:
-                sheet_url = row.iloc[0]['sheet_url']
-        except Exception as e:
-            st.warning(f"sheets.csv 읽기 실패: {e}")
-
-        if not sheet_url:
-            return
-
 
         # ------------------ CSV 로드 ------------------
         try:
