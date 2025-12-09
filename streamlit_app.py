@@ -340,7 +340,7 @@ def student_page():
             avg_hover_text += ""
         else:
             # 퍼센트 계산 (평균이 NaN이면 NaN 처리)
-            pct = ((a - g) / g * 100) if (not pd.isna(a)) else np.nan
+            pct = ((a) / g * 100) if (not pd.isna(a)) else np.nan
             if pd.isna(pct):
                 pct_part = ""
             else:
@@ -358,7 +358,7 @@ def student_page():
         avg_hover.append(avg_hover_text)
 
         # 목표 막대 텍스트 / hover
-        goal_texts.append(f"{goal_text}h" if goal_text != "" else "")
+        goal_texts.append(f"{goal_text}시간" if goal_text != "" else "")
         goal_hover.append(goal_hover_text)
 
     # --- Plotly 차트 구성 ---
