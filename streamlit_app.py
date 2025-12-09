@@ -152,7 +152,7 @@ def student_page():
 
     # ------------------ 화면 전환 ------------------
     device = st.session_state["device"]
-
+    st.markdown('미리보기는 PC버전입니다. 모바일로 입력하려면 모바일 버튼을 눌러주세요.)
     if device == "PC":
         try:
             pc_url = sheet_url + "&widget=true&headers=true"
@@ -164,14 +164,6 @@ def student_page():
             st.warning(f"iframe 렌더링 실패: {e}")
 
     else:
-        st.components.v1.html(
-            f"""
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <iframe class="sheet-frame" src="{htmlview_url}"></iframe>
-            """,
-            height=1600,
-            scrolling=True
-        )
         st.markdown(
             f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
             unsafe_allow_html=True
