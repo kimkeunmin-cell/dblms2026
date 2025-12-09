@@ -581,7 +581,7 @@ def student_page():
 
                 fig2.update_traces(textfont_size=14)
 
-                st.plotly_chart(fig2, use_container_width=True, key="fig_week_chart")
+                st.plotly_chart(fig2, use_container_width=True, key="fig_w_target_chart")
                 
     # ------------------ 로그아웃 ------------------
     if st.button("🔙 로그아웃"):
