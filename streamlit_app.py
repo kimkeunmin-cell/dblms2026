@@ -504,113 +504,113 @@ def student_page():
 
                     st.plotly_chart(fig, use_container_width=True, key="fig_week_chart")
 
-                # ------------------ 목표 대비 평균 그래프 ------------------
-                st.markdown("---")
-                st.subheader("🎯 목표 대비 평균 비교")
+                    # ------------------ 목표 대비 평균 그래프 ------------------
+                    st.markdown("---")
+                    st.subheader("🎯 목표 대비 평균 비교")
     
-                # --- 안전한 수치 변환 (문자열/빈값 대비) ---
-                goal_raw = df_csv[selected_vars].iloc[0]  # 원래 코드
-                goal_num = goal_raw.apply(pd.to_numeric, errors='coerce')  # NaN 허용
-                avg_num = df_range[selected_vars].apply(pd.to_numeric, errors='coerce').mean()
+                    # --- 안전한 수치 변환 (문자열/빈값 대비) ---
+                    goal_raw = df_csv[selected_vars].iloc[0]  # 원래 코드
+                    goal_num = goal_raw.apply(pd.to_numeric, errors='coerce')  # NaN 허용
+                    avg_num = df_range[selected_vars].apply(pd.to_numeric, errors='coerce').mean()
 
-                # --- 리스트 생성: 텍스트, hover_text, color 등 ---
-                avg_texts = []
-                avg_hover = []
-                goal_texts = []
-                goal_hover = []
-                colors_dynamic = []
+                    # --- 리스트 생성: 텍스트, hover_text, color 등 ---
+                    avg_texts = []
+                    avg_hover = []
+                    goal_texts = []
+                    goal_hover = []
+                    colors_dynamic = []
     
-                for var in selected_vars:
-                    g = goal_num.get(var, np.nan)
-                    a = avg_num.get(var, np.nan)
-                    # 평균 텍스트 (항상 표시)
-                    if pd.isna(a):
-                        avg_text = ""
-                        avg_hover_text = f"({var}) 평균: -"
-                    else:
-                        avg_text = f"{a:.2f}"
-                        avg_hover_text = f"({var}) 평균: {a:.2f}시간"
-
-                    # 목표 텍스트
-                    if pd.isna(g):
-                        goal_text = ""
-                        goal_hover_text = f"({var}) 목표: -"
-                    else:
-                        goal_text = f"{g:.2f}"
-                        goal_hover_text = f"({var}) 목표: {g:.2f}시간"
-
-                    # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
-                    if pd.isna(g) or g == 0:
-                        pct_part = ""  # 퍼센트 표시 없음
-                        colors_dynamic.append("#9e9e9e")  # gray for undefined target
-                        # hover에 퍼센트 없음
-                        avg_hover_text += ""
-                    else:
-                        # 퍼센트 계산 (평균이 NaN이면 NaN 처리)
-                        pct = ((a) / g * 100) if (not pd.isna(a)) else np.nan
-                        if pd.isna(pct):
-                            pct_part = ""
+                    for var in selected_vars:
+                        g = goal_num.get(var, np.nan)
+                        a = avg_num.get(var, np.nan)
+                        # 평균 텍스트 (항상 표시)
+                        if pd.isna(a):
+                            avg_text = ""
+                            avg_hover_text = f"({var}) 평균: -"
                         else:
-                            pct_part = f" ({pct:+.1f}%)"  # + / - 포함해서 표시
-                        # 색: 달성(녹색) vs 미달(빨강)
-                        if not pd.isna(a) and a >= g:
-                            colors_dynamic.append("#2ecc71")  # green
+                            avg_text = f"{a:.2f}"
+                            avg_hover_text = f"({var}) 평균: {a:.2f}시간"
+
+                        # 목표 텍스트
+                        if pd.isna(g):
+                            goal_text = ""
+                            goal_hover_text = f"({var}) 목표: -"
                         else:
-                            colors_dynamic.append("#e74c3c")  # red
+                            goal_text = f"{g:.2f}"
+                            goal_hover_text = f"({var}) 목표: {g:.2f}시간"
+
+                        # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
+                        if pd.isna(g) or g == 0:
+                            pct_part = ""  # 퍼센트 표시 없음
+                            colors_dynamic.append("#9e9e9e")  # gray for undefined target
+                            # hover에 퍼센트 없음
+                            avg_hover_text += ""
+                        else:
+                            # 퍼센트 계산 (평균이 NaN이면 NaN 처리)
+                            pct = ((a) / g * 100) if (not pd.isna(a)) else np.nan
+                            if pd.isna(pct):
+                                pct_part = ""
+                            else:
+                                pct_part = f" ({pct:+.1f}%)"  # + / - 포함해서 표시
+                            # 색: 달성(녹색) vs 미달(빨강)
+                            if not pd.isna(a) and a >= g:
+                                colors_dynamic.append("#2ecc71")  # green
+                            else:
+                                colors_dynamic.append("#e74c3c")  # red
+        
+                            avg_hover_text += f"<br>목표 대비: {pct:+.1f}%"
+        
+                        # 평균 막대 위 텍스트 (h 단위 표기를 기존 스타일에 맞춰 유지)
+                        avg_texts.append(f"{avg_text}시간{pct_part}" if avg_text != "" else "")
+                        avg_hover.append(avg_hover_text)
+                        # 목표 막대 텍스트 / hover
+                        goal_texts.append(f"{goal_text}시간" if goal_text != "" else "")
+                        goal_hover.append(goal_hover_text)
     
-                        avg_hover_text += f"<br>목표 대비: {pct:+.1f}%"
+                    # --- Plotly 차트 구성 ---
+                    fig2 = go.Figure()
+     
+                    # 평균값 Bar (개별 색/텍스트/hover 적용)
+                    fig2.add_trace(go.Bar(
+                        x=selected_vars,
+                        y=[float(x) if not pd.isna(x) else 0 for x in avg_num.values],   
+                        name="평균",
+                        marker_color=colors_dynamic,
+                        text=avg_texts,
+                        texttemplate='%{text}',
+                        textposition='outside',
+                        hovertext=avg_hover,
+                        hovertemplate='%{hovertext}<extra></extra>'
+                    ))
     
-                    # 평균 막대 위 텍스트 (h 단위 표기를 기존 스타일에 맞춰 유지)
-                    avg_texts.append(f"{avg_text}시간{pct_part}" if avg_text != "" else "")
-                    avg_hover.append(avg_hover_text)
-                    # 목표 막대 텍스트 / hover
-                    goal_texts.append(f"{goal_text}시간" if goal_text != "" else "")
-                    goal_hover.append(goal_hover_text)
+                    # 목표값 Bar
+                    fig2.add_trace(go.Bar(
+                        x=selected_vars,
+                        y=[float(x) if not pd.isna(x) else 0 for x in goal_num.values],
+                        name="목표",
+                        marker_color='orange',
+                        text=goal_texts,
+                        texttemplate='%{text}',
+                        textposition='outside',
+                        hovertext=goal_hover,
+                        hovertemplate='%{hovertext}<extra></extra>'
+                    ))
+    
+                    # 레이아웃 유지 + 약간의 margin 조정
+                    fig2.update_layout(
+                        yaxis_title="시간(시간)",
+                        xaxis_title="항목",
+                        xaxis=dict(tickangle=-45),
+                        height=600,
+                        barmode='group',
+                        template="plotly_white",
+                        colorway=px.colors.qualitative.Pastel,
+                        margin=dict(l=30, r=30, t=50, b=150)
+                    )        
 
-                # --- Plotly 차트 구성 ---
-                fig2 = go.Figure()
- 
-                # 평균값 Bar (개별 색/텍스트/hover 적용)
-                fig2.add_trace(go.Bar(
-                    x=selected_vars,
-                    y=[float(x) if not pd.isna(x) else 0 for x in avg_num.values],   
-                    name="평균",
-                    marker_color=colors_dynamic,
-                    text=avg_texts,
-                    texttemplate='%{text}',
-                    textposition='outside',
-                    hovertext=avg_hover,
-                    hovertemplate='%{hovertext}<extra></extra>'
-                ))
-
-                # 목표값 Bar
-                fig2.add_trace(go.Bar(
-                    x=selected_vars,
-                    y=[float(x) if not pd.isna(x) else 0 for x in goal_num.values],
-                    name="목표",
-                    marker_color='orange',
-                    text=goal_texts,
-                    texttemplate='%{text}',
-                    textposition='outside',
-                    hovertext=goal_hover,
-                    hovertemplate='%{hovertext}<extra></extra>'
-                ))
-
-                # 레이아웃 유지 + 약간의 margin 조정
-                fig2.update_layout(
-                    yaxis_title="시간(시간)",
-                    xaxis_title="항목",
-                    xaxis=dict(tickangle=-45),
-                    height=600,
-                    barmode='group',
-                    template="plotly_white",
-                    colorway=px.colors.qualitative.Pastel,
-                    margin=dict(l=30, r=30, t=50, b=150)
-                )        
-
-                fig2.update_traces(textfont_size=14)
-
-                st.plotly_chart(fig2, use_container_width=True, key="fig_w_target_chart")
+                    fig2.update_traces(textfont_size=14)
+    
+                    st.plotly_chart(fig2, use_container_width=True, key="fig_w_target_chart")
                 
     # ------------------ 로그아웃 ------------------
     if st.button("🔙 로그아웃"):
