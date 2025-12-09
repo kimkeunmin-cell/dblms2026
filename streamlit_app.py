@@ -459,9 +459,9 @@ def student_page():
             # ------------------ 그룹 + 변수 선택 ------------------
             st.markdown("---")
             st.subheader("그룹 선택 및 변수 선택")
-            selected_group = st.selectbox("그룹 선택", list(GROUPS.keys()))
+            selected_group = st.selectbox("그룹 선택(주간 리포트)", list(GROUPS.keys()))
             variables = GROUPS[selected_group]
-            selected_vars = st.multiselect("변수 선택", variables, default=variables)
+            selected_vars = st.multiselect("변수 선택(주간 리포트)", variables, default=variables)
     
             if not selected_vars:
                 st.info("하나 이상의 변수를 선택해주세요.")
