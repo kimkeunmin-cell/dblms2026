@@ -471,8 +471,8 @@ def student_page():
                     st.warning("선택한 기간에 데이터가 없습니다.")
                 else:
                 # ------------------ 누적 막대 그래프 ------------------
-                    st.markdown("---")
-                    st.subheader("📊 누적 막대 그래프")
+                st.markdown("---")
+                st.subheader("📊 누적 막대 그래프")
                     fig = go.Figure()
                     for var in selected_vars:
                         fig.add_trace(go.Bar(
