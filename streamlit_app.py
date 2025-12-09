@@ -136,6 +136,9 @@ def student_page():
     mobile_selected = "toggle-btn-selected" if st.session_state["device"] == "모바일" else ""
 
     col1, col2 = st.columns(2)
+    
+    # 모바일 최적화 URL (무조건 먼저 정의해야 함)
+    htmlview_url = sheet_url.replace("/edit", "/htmlview")
 
     with col1:
         if st.button("💻 PC(컴퓨터, 노트북)", key="pc_btn"):
