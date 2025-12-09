@@ -520,7 +520,7 @@ def student_page():
                     colorway=px.colors.qualitative.Pastel
                 )
                 fig.update_traces(textfont_size=14)
-                st.plotly_chart(fig, use_container_width=True, key="fig_week_chart")
+            st.plotly_chart(fig, use_container_width=True, key="fig_week_chart")
                 # ------------------ 목표 대비 평균 그래프 ------------------
                 st.markdown("---")
                 st.subheader("🎯 목표 대비 평균 비교")
