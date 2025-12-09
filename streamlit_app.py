@@ -128,6 +128,48 @@ def student_page():
     with tab1:
         st.write("직접 시작일과 종료일을 선택해서 차트를 볼 수 있습니다.")
 
+        st.markdown("<div class='section-title'>📱 화면 환경 선택</div>", unsafe_allow_html=True)
+        # 저장된 선택값 유지
+        if "device" not in st.session_state:
+            st.session_state["device"] = "PC"
+
+        # ------------------ 토글 버튼 랜더링 ------------------
+        st.markdown("<div class='toggle-container'>", unsafe_allow_html=True)
+
+        pc_selected = "toggle-btn-selected" if st.session_state["device"] == "PC" else ""
+        mobile_selected = "toggle-btn-selected" if st.session_state["device"] == "모바일" else ""
+
+        col1, col2 = st.columns(2)
+    
+        with col1:
+            if st.button("💻 PC(컴퓨터, 노트북)", key="pc_btn"):
+                st.session_state["device"] = "PC"
+
+        with col2:
+            if st.button("📱 모바일(핸드폰, 태블릿)", key="mobile_btn"):
+                st.session_state["device"] = "모바일"
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # ------------------ 화면 전환 ------------------
+        device = st.session_state["device"]
+        st.markdown('미리보기는 PC버전입니다. 모바일로 입력하려면 모바일 버튼을 눌러주세요.')
+        if device == "PC":
+            try:
+                pc_url = sheet_url + "&widget=true&headers=true"
+                st.components.v1.html(
+                    f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none; border-radius:12px;'></iframe>",
+                    height=600
+                )
+            except Exception as e:
+                st.warning(f"iframe 렌더링 실패: {e}")
+
+        else:
+            st.markdown(
+                f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
+                unsafe_allow_html=True
+            )
+
     # ------------------ Google Sheet URL 가져오기 ------------------
     sheet_url = None
     try:
@@ -140,49 +182,6 @@ def student_page():
 
     if not sheet_url:
         return
-
-    st.markdown("<div class='section-title'>📱 화면 환경 선택</div>", unsafe_allow_html=True)
-
-    # 저장된 선택값 유지
-    if "device" not in st.session_state:
-        st.session_state["device"] = "PC"
-
-    # ------------------ 토글 버튼 랜더링 ------------------
-    st.markdown("<div class='toggle-container'>", unsafe_allow_html=True)
-
-    pc_selected = "toggle-btn-selected" if st.session_state["device"] == "PC" else ""
-    mobile_selected = "toggle-btn-selected" if st.session_state["device"] == "모바일" else ""
-
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if st.button("💻 PC(컴퓨터, 노트북)", key="pc_btn"):
-            st.session_state["device"] = "PC"
-
-    with col2:
-        if st.button("📱 모바일(핸드폰, 태블릿)", key="mobile_btn"):
-            st.session_state["device"] = "모바일"
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # ------------------ 화면 전환 ------------------
-    device = st.session_state["device"]
-    st.markdown('미리보기는 PC버전입니다. 모바일로 입력하려면 모바일 버튼을 눌러주세요.')
-    if device == "PC":
-        try:
-            pc_url = sheet_url + "&widget=true&headers=true"
-            st.components.v1.html(
-                f"<iframe src='{pc_url}' style='width:100%; height:600px; border:none; border-radius:12px;'></iframe>",
-                height=600
-            )
-        except Exception as e:
-            st.warning(f"iframe 렌더링 실패: {e}")
-
-    else:
-        st.markdown(
-            f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
-            unsafe_allow_html=True
-        )
 
 
     # ------------------ CSV 로드 ------------------
