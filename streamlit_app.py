@@ -428,53 +428,71 @@ def student_page():
     with tab2:
         st.subheader("주간별 리포트")
 
-        period_name = st.selectbox("보고 싶은 기간을 선택하세요", list(PRESET_PERIODS.keys()))
-        
+        # --- State 초기화 ---
         if "weekly_report_mode" not in st.session_state:
             st.session_state["weekly_report_mode"] = False
-    
-        if st.button("리포트 보기"):
+        if "weekly_period" not in st.session_state:
+            st.session_state["weekly_period"] = None
+
+        # --- 기본 화면: 기간 선택 + 버튼 ---
+        period_name = st.selectbox(
+            "보고 싶은 기간을 선택하세요", 
+            list(PRESET_PERIODS.keys()),
+            key="weekly_period_select"
+        )
+
+        if st.button("리포트 보기", key="weekly_report_show"):
             st.session_state["weekly_report_mode"] = True
-            if st.session_state["weekly_report_mode"]:
-                start_str, end_str = PRESET_PERIODS[period_name]
-                start_date = pd.to_datetime(start_str)
-                end_date = pd.to_datetime(end_str)
+            st.session_state["weekly_period"] = period_name
+            st.rerun()
 
-                st.info(f"📌 선택한 기간: **{start_str} ~ {end_str}**")
-    
-                # 해당 기간 데이터 필터
-                df_range = df_csv[(df_csv['일시'] >= start_str) & (df_csv['일시'] <= end_str)]
-                # 원하는 컬럼만 선택
-                display_cols = [
-                    "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학(시간)", "비문학(시간)", "화언(시간)", "국어기타(시간)", "국어합(시간)",
-                    "대수(시간)", "미적(시간)", "확통(시간)", "수학기타(시간)", "수학합(시간)",
-                    "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
-                    "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "전체합(시간)"]
-        
-                df_display = df_range.copy()
-    
-                # 일시 컬럼을 yyyy-mm-dd 형식으로 변환
-                df_display["일시"] = df_display["일시"].dt.strftime("%Y-%m-%d")
+        # --- 여기부터 리포트 모드 ---
+        if st.session_state["weekly_report_mode"]:
 
-                # 선택한 컬럼만 남기기
-                df_display = df_display[[col for col in display_cols if col in df_display.columns]]
-                df_display = df_display.round(2)
-                st.dataframe(df_display)
-    
-                # ------------------ 그룹 + 변수 선택 ------------------
-                st.markdown("---")
-                st.subheader("그룹 선택 및 변수 선택")
-                selected_group = st.selectbox("그룹 선택(주간 리포트)", list(GROUPS.keys()))
-                variables = GROUPS[selected_group]
-                selected_vars = st.multiselect("변수 선택(주간 리포트)", variables, default=variables)
-    
-                if not selected_vars:
-                    st.info("하나 이상의 변수를 선택해주세요.")
-                    return
+            period_name = st.session_state["weekly_period"]
+            start_str, end_str = PRESET_PERIODS[period_name]
 
-                if df_range.empty:
-                    st.warning("선택한 기간에 데이터가 없습니다.")
-                else:
+            st.info(f"📌 선택한 기간: **{start_str} ~ {end_str}**")
+
+            # 데이터 필터링
+            df_range = df_csv[(df_csv["일시"] >= start_str) & (df_csv["일시"] <= end_str)]
+
+            display_cols = [
+                "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학(시간)", "비문학(시간)",
+                "화언(시간)", "국어기타(시간)", "국어합(시간)",
+                "대수(시간)", "미적(시간)", "확통(시간)", "수학기타(시간)", "수학합(시간)",
+                "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
+                "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "전체합(시간)"
+            ]
+
+            # 표 출력
+            df_display = df_range.copy()
+            df_display["일시"] = df_display["일시"].dt.strftime("%Y-%m-%d")
+            df_display = df_display[[c for c in display_cols if c in df_display.columns]]
+            df_display = df_display.round(2)
+
+            st.dataframe(df_display, use_container_width=True)
+
+            st.markdown("---")
+            st.subheader("그룹 선택 및 변수 선택")
+
+            selected_group = st.selectbox("그룹 선택(주간 리포트)", list(GROUPS.keys()), key="weekly_group")
+            variables = GROUPS[selected_group]
+
+            selected_vars = st.multiselect(
+                "변수 선택(주간 리포트)", 
+                variables, 
+                default=variables,
+                key="weekly_vars"
+            )
+
+            if not selected_vars:
+                st.info("하나 이상의 변수를 선택해주세요.")
+                st.stop()
+
+            if df_range.empty:
+                st.warning("선택한 기간에 데이터가 없습니다.")
+                st.stop()
                 # ------------------ 누적 막대 그래프 ------------------
                     st.markdown("---")
                     st.subheader("📊 누적 막대 그래프")
