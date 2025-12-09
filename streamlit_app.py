@@ -493,21 +493,22 @@ def student_page():
             if df_range.empty:
                 st.warning("선택한 기간에 데이터가 없습니다.")
                 st.stop()
-                # ------------------ 누적 막대 그래프 ------------------
-                st.markdown("---")
-                st.subheader("📊 누적 막대 그래프")
-                fig = go.Figure()
-                for var in selected_vars:
-                    fig.add_trace(go.Bar(
-                        y=df_range["일시"].dt.strftime("%Y-%m-%d"),
-                        x=pd.to_numeric(df_range[var], errors='coerce').fillna(0),
-                        orientation='h',
-                        name=var,
-                        text=pd.to_numeric(df_range[var], errors='coerce').fillna(0).round(2),
-                        texttemplate='%{text}',
-                        textposition='inside',
-                        hovertemplate='(%{y}) %{x:.2f}시간<extra></extra>'
-                    ))
+         
+            # ------------------ 누적 막대 그래프 ------------------
+            st.markdown("---")
+            st.subheader("📊 누적 막대 그래프")
+            fig = go.Figure()
+            for var in selected_vars:
+                fig.add_trace(go.Bar(
+                    y=df_range["일시"].dt.strftime("%Y-%m-%d"),
+                    x=pd.to_numeric(df_range[var], errors='coerce').fillna(0),
+                    orientation='h',
+                    name=var,
+                    text=pd.to_numeric(df_range[var], errors='coerce').fillna(0).round(2),
+                    texttemplate='%{text}',
+                    textposition='inside',
+                    hovertemplate='(%{y}) %{x:.2f}시간<extra></extra>'
+                ))
                 fig.update_layout(
                     barmode='stack',
                     xaxis_title="시간(시간)",
