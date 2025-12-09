@@ -169,7 +169,7 @@ def student_page():
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <iframe class="sheet-frame" src="{htmlview_url}"></iframe>
             """,
-            height=800,
+            height=1600,
             scrolling=True
         )
         st.markdown(
