@@ -439,10 +439,37 @@ def student_page():
 
             # 해당 기간 데이터 필터
             df_range = df_csv[(df_csv['일시'] >= start_str) & (df_csv['일시'] <= end_str)]
+            # 원하는 컬럼만 선택
+            display_cols = [
+                "일시", "낮잠(시간)", "밤잠(시간)", "수면(시간)", "문학(시간)", "비문학(시간)", "화언(시간)", "국어기타(시간)", "국어합(시간)",
+                "대수(시간)", "미적(시간)", "확통(시간)", "수학기타(시간)", "수학합(시간)",
+                "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
+                "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "전체합(시간)"]
+        
+            df_display = df_range.copy()
+    
+            # 일시 컬럼을 yyyy-mm-dd 형식으로 변환
+            df_display["일시"] = df_display["일시"].dt.strftime("%Y-%m-%d")
 
-            if df_range.empty:
-                st.warning("선택한 기간에 데이터가 없습니다.")
-            else:
+            # 선택한 컬럼만 남기기
+            df_display = df_display[[col for col in display_cols if col in df_display.columns]]
+            df_display = df_display.round(2)
+            st.dataframe(df_display)
+    
+            # ------------------ 그룹 + 변수 선택 ------------------
+            st.markdown("---")
+            st.subheader("그룹 선택 및 변수 선택")
+            selected_group = st.selectbox("그룹 선택", list(GROUPS.keys()))
+            variables = GROUPS[selected_group]
+            selected_vars = st.multiselect("변수 선택", variables, default=variables)
+    
+            if not selected_vars:
+                st.info("하나 이상의 변수를 선택해주세요.")
+                return
+
+                if df_range.empty:
+                    st.warning("선택한 기간에 데이터가 없습니다.")
+                else:
                 # ------------------ 누적 막대 그래프 ------------------
                 st.markdown("---")
                 st.subheader("📊 누적 막대 그래프")
