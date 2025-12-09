@@ -21,6 +21,15 @@ GROUPS = {
     "탐구": ["통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)"]    
 }
 
+# 교사가 미리 설정해둔 기간들
+PRESET_PERIODS = {
+    "1주차 (3/1~3/7)": ("2025-03-01", "2025-03-07"),
+    "2주차 (3/8~3/14)": ("2025-03-08", "2025-03-14"),
+    "중간고사 대비 주간": ("2025-04-10", "2025-04-16"),
+    "기말고사 대비 주간": ("2025-06-01", "2025-06-07"),
+}
+
+
 st.set_page_config(page_title="학습 관리 시스템", layout="centered")
 
 # ------------------ 로그인 ------------------
@@ -110,6 +119,14 @@ def student_page():
     """, unsafe_allow_html=True)
 
     st.title(f"학생 페이지 - {st.session_state['user_id']}")
+
+    tab1, tab2 = st.tabs(["📅 직접 기간 선택", "📊 주간별 리포트"])
+
+    # --------------------------------------------
+    # 📅 TAB 1: 기존 기능 (학생이 직접 기간 선택)
+    # --------------------------------------------
+    with tab1:
+        st.write("직접 시작일과 종료일을 선택해서 차트를 볼 수 있습니다.")
 
     # ------------------ Google Sheet URL 가져오기 ------------------
     sheet_url = None
@@ -406,7 +423,166 @@ def student_page():
 
     st.plotly_chart(fig2, use_container_width=True)
 
+    # --------------------------------------------
+    # 📊 TAB 2: 주간별 리포트 — 사전 설정된 기간
+    # --------------------------------------------
+    with tab2:
+        st.subheader("주간별 리포트")
 
+        period_name = st.selectbox("보고 싶은 기간을 선택하세요", list(PRESET_PERIODS.keys()))
+
+        if st.button("리포트 보기"):
+            start_str, end_str = PRESET_PERIODS[period_name]
+            start_date = pd.to_datetime(start_str)
+            end_date = pd.to_datetime(end_str)
+
+            st.info(f"📌 선택한 기간: **{start_str} ~ {end_str}**")
+
+            # 해당 기간 데이터 필터
+            df_range = df_csv[(df_csv['date'] >= start_str) & (df_csv['date'] <= end_str)]
+
+            if df_range.empty:
+                st.warning("선택한 기간에 데이터가 없습니다.")
+            else:
+                    # ------------------ 누적 막대 그래프 ------------------
+    st.markdown("---")
+    st.subheader("📊 누적 막대 그래프")
+    fig = go.Figure()
+    for var in selected_vars:
+        fig.add_trace(go.Bar(
+            y=df_range["일시"].dt.strftime("%Y-%m-%d"),
+            x=pd.to_numeric(df_range[var], errors='coerce').fillna(0),
+            orientation='h',
+            name=var,
+            text=pd.to_numeric(df_range[var], errors='coerce').fillna(0).round(2),
+            texttemplate='%{text}',
+            textposition='inside',
+            hovertemplate='(%{y}) %{x:.2f}시간<extra></extra>'
+        ))
+    fig.update_layout(
+        barmode='stack',
+        xaxis_title="시간(시간)",
+        yaxis_title="날짜",
+        yaxis={'autorange':'reversed'},
+        height=600,
+        template="plotly_white",
+        legend_traceorder='normal',
+        colorway=px.colors.qualitative.Pastel
+    )
+    fig.update_traces(textfont_size=14)
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ------------------ 목표 대비 평균 그래프 ------------------
+    st.markdown("---")
+    st.subheader("🎯 목표 대비 평균 비교")
+
+    # --- 안전한 수치 변환 (문자열/빈값 대비) ---
+    goal_raw = df_csv[selected_vars].iloc[0]  # 원래 코드
+    goal_num = goal_raw.apply(pd.to_numeric, errors='coerce')  # NaN 허용
+    avg_num = df_range[selected_vars].apply(pd.to_numeric, errors='coerce').mean()
+
+    # --- 리스트 생성: 텍스트, hover_text, color 등 ---
+    avg_texts = []
+    avg_hover = []
+    goal_texts = []
+    goal_hover = []
+    colors_dynamic = []
+
+    for var in selected_vars:
+        g = goal_num.get(var, np.nan)
+        a = avg_num.get(var, np.nan)
+
+        # 평균 텍스트 (항상 표시)
+        if pd.isna(a):
+            avg_text = ""
+            avg_hover_text = f"({var}) 평균: -"
+        else:
+            avg_text = f"{a:.2f}"
+            avg_hover_text = f"({var}) 평균: {a:.2f}시간"
+
+        # 목표 텍스트
+        if pd.isna(g):
+            goal_text = ""
+            goal_hover_text = f"({var}) 목표: -"
+        else:
+            goal_text = f"{g:.2f}"
+            goal_hover_text = f"({var}) 목표: {g:.2f}시간"
+
+        # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
+        if pd.isna(g) or g == 0:
+            pct_part = ""  # 퍼센트 표시 없음
+            colors_dynamic.append("#9e9e9e")  # gray for undefined target
+            # hover에 퍼센트 없음
+            avg_hover_text += ""
+        else:
+            # 퍼센트 계산 (평균이 NaN이면 NaN 처리)
+            pct = ((a) / g * 100) if (not pd.isna(a)) else np.nan
+            if pd.isna(pct):
+                pct_part = ""
+            else:
+                pct_part = f" ({pct:+.1f}%)"  # + / - 포함해서 표시
+            # 색: 달성(녹색) vs 미달(빨강)
+            if not pd.isna(a) and a >= g:
+                colors_dynamic.append("#2ecc71")  # green
+            else:
+                colors_dynamic.append("#e74c3c")  # red
+
+            avg_hover_text += f"<br>목표 대비: {pct:+.1f}%"
+
+        # 평균 막대 위 텍스트 (h 단위 표기를 기존 스타일에 맞춰 유지)
+        avg_texts.append(f"{avg_text}시간{pct_part}" if avg_text != "" else "")
+        avg_hover.append(avg_hover_text)
+
+        # 목표 막대 텍스트 / hover
+        goal_texts.append(f"{goal_text}시간" if goal_text != "" else "")
+        goal_hover.append(goal_hover_text)
+
+    # --- Plotly 차트 구성 ---
+    fig2 = go.Figure()
+
+    # 평균값 Bar (개별 색/텍스트/hover 적용)
+    fig2.add_trace(go.Bar(
+        x=selected_vars,
+        y=[float(x) if not pd.isna(x) else 0 for x in avg_num.values],   
+        name="평균",
+        marker_color=colors_dynamic,
+        text=avg_texts,
+        texttemplate='%{text}',
+        textposition='outside',
+        hovertext=avg_hover,
+        hovertemplate='%{hovertext}<extra></extra>'
+    ))
+
+    # 목표값 Bar
+    fig2.add_trace(go.Bar(
+        x=selected_vars,
+        y=[float(x) if not pd.isna(x) else 0 for x in goal_num.values],
+        name="목표",
+        marker_color='orange',
+        text=goal_texts,
+        texttemplate='%{text}',
+        textposition='outside',
+        hovertext=goal_hover,
+        hovertemplate='%{hovertext}<extra></extra>'
+    ))
+
+    # 레이아웃 유지 + 약간의 margin 조정
+    fig2.update_layout(
+        yaxis_title="시간(시간)",
+        xaxis_title="항목",
+        xaxis=dict(tickangle=-45),
+        height=600,
+        barmode='group',
+        template="plotly_white",
+        colorway=px.colors.qualitative.Pastel,
+        margin=dict(l=30, r=30, t=50, b=150)
+    )
+
+    fig2.update_traces(textfont_size=14)
+
+    st.plotly_chart(fig2, use_container_width=True)
+                
     # ------------------ 로그아웃 ------------------
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
