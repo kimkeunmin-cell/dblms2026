@@ -253,7 +253,7 @@ def student_page():
 
     # 선택한 컬럼만 남기기
     df_display = df_display[[col for col in display_cols if col in df_display.columns]]
-
+    df_display = df_display.round(2)
     st.dataframe(df_display)
     
     # ------------------ 그룹 + 변수 선택 ------------------
