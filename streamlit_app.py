@@ -471,7 +471,7 @@ def student_page():
                 )
                 fig.update_traces(textfont_size=14)
 
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, key="fig_week_chart")
 
                 # ------------------ 목표 대비 평균 그래프 ------------------
                 st.markdown("---")
@@ -581,7 +581,7 @@ def student_page():
 
                 fig2.update_traces(textfont_size=14)
 
-                st.plotly_chart(fig2, use_container_width=True)
+                st.plotly_chart(fig2, use_container_width=True, key="fig_week_chart"))
                 
     # ------------------ 로그아웃 ------------------
     if st.button("🔙 로그아웃"):
