@@ -439,7 +439,7 @@ def student_page():
             st.info(f"📌 선택한 기간: **{start_str} ~ {end_str}**")
 
             # 해당 기간 데이터 필터
-            df_range = df_csv[(df_csv['date'] >= start_str) & (df_csv['date'] <= end_str)]
+            df_range = df_csv[(df_csv['일시'] >= start_str) & (df_csv['일시'] <= end_str)]
 
             if df_range.empty:
                 st.warning("선택한 기간에 데이터가 없습니다.")
