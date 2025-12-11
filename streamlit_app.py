@@ -50,12 +50,16 @@ def login_page():
     user_id = st.text_input("아이디", value="")
     user_pw = st.text_input("비밀번호", value="", type="password")
     login_clicked = st.button("로그인")
-    if login_clicked:
+    if st.button("로그인"):
         user = check_login(user_id, user_pw)
-        if user is not None and not user.empty:  # ⚠ 여기서 None 체크
+
+        if user is not None and not user.empty:
             st.session_state['logged_in'] = True
             st.session_state['user_id'] = user_id
             st.session_state['role'] = user.get('role', 'student')
+
+            st.success("로그인 성공!")
+            st.rerun()   # 🔥 핵심! 로그인 후 즉시 메인 페이지로 이동
         else:
             st.error("아이디 또는 비밀번호가 잘못되었습니다.")
 
