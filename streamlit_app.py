@@ -430,10 +430,10 @@ def student_page():
     # --------------------------------------------
     with tab2:
         st.subheader("주간별 리포트")
-		if "df_csv" not in st.session_state:
+        if "df_csv" not in st.session_state:
 			st.warning("📅 먼저 [직접 기간 선택] 탭에서 데이터를 불러주세요.")
 			st.stop()
-		df_csv = st.session_state["df_csv"]
+        df_csv = st.session_state["df_csv"]
 
 
         # --- State 초기화 ---
