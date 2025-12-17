@@ -167,7 +167,7 @@ def student_page():
             st.warning(f"sheets.csv 읽기 실패: {e}")
 
         if not sheet_url:
-            return
+            st.stop()
 
         if device == "PC":
             try:
@@ -190,6 +190,7 @@ def student_page():
             sheet_id = sheet_url.split('/d/')[1].split('/')[0]
             csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
+			st.session_state["df_csv"] = df_csv
 
             # 컬럼 정규화
             df_csv.columns = (
@@ -203,7 +204,7 @@ def student_page():
 
         except Exception as e:
             st.warning(f"CSV 로드 실패: {e}")
-            return
+            st.stop()
 
         # ------------------ 날짜 범위 선택 ------------------
         st.markdown("---")
@@ -213,7 +214,7 @@ def student_page():
             df_csv = df_csv.dropna(subset=["일시"])
         except:
             st.error("❌ '일시' 컬럼 날짜 변환 실패.")
-            return
+            st.stop()
     
     
         min_date = df_csv["일시"].min().date()
@@ -249,7 +250,7 @@ def student_page():
     
         if start_date > end_date:
             st.warning("⚠ 종료 날짜가 시작 날짜보다 빠를 수 없습니다.")
-            return
+            st.stop()
 
         df_range = df_csv[(df_csv["일시"] >= pd.to_datetime(start_date)) &
                           (df_csv["일시"] <= pd.to_datetime(end_date))]
@@ -282,7 +283,7 @@ def student_page():
     
         if not selected_vars:
             st.info("하나 이상의 변수를 선택해주세요.")
-            return
+            st.stop()
 
         # ------------------ 누적 막대 그래프 ------------------
         st.markdown("---")
@@ -428,6 +429,11 @@ def student_page():
     # --------------------------------------------
     with tab2:
         st.subheader("주간별 리포트")
+		if "df_csv" not in st.session_state:
+			st.warning("📅 먼저 [직접 기간 선택] 탭에서 데이터를 불러주세요.")
+			st.stop()
+		df_csv = st.session_state["df_csv"]
+
 
         # --- State 초기화 ---
         if "weekly_report_mode" not in st.session_state:
