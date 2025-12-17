@@ -635,25 +635,23 @@ def student_page():
     # 📊 TAB 2: 주간별 리포트 — 사전 설정된 기간
     # --------------------------------------------
     with tab3:
-	    st.subheader("📈 변수별 주간 평균 추이")
-
-    	st.caption("각 변수의 1주일 평균 학습시간을 꺾은선 그래프로 표시합니다.")
+		st.subheader("📈 변수별 주간 평균 추이")
+		st.caption("각 변수의 1주일 평균 학습시간을 꺾은선 그래프로 표시합니다.")
 
 	    # ------------------ 그룹 & 변수 선택 ------------------
-    	selected_group = st.selectbox(
-        	"그룹 선택 (주간 평균)",
+		selected_group = st.selectbox(
+			"그룹 선택 (주간 평균)",
 	        list(GROUPS.keys()),
     	    key="weekly_line_group"
-	    )
-
-    	variables = GROUPS[selected_group]
-
-	    selected_vars = st.multiselect(
-    	    "변수 선택 (주간 평균)",
+		)
+		variables = GROUPS[selected_group]
+		
+		selected_vars = st.multiselect(
+			"변수 선택 (주간 평균)",
         	variables,
         	default=variables,
 	        key="weekly_line_vars"
-    	)
+		)
 
 	    if not selected_vars:
     	    st.info("하나 이상의 변수를 선택해주세요.")
