@@ -125,7 +125,11 @@ def student_page():
 
     st.title(f"학생 페이지 - {st.session_state['user_id']}")
 
-    tab1, tab2 = st.tabs(["📅 직접 기간 선택", "📊 주간별 리포트"])
+    tab1, tab2, tab3 = st.tabs([
+    "📅 직접 기간 선택",
+    "📊 주간별 리포트",
+    "📈 주간 평균 추이"])
+
 
     # --------------------------------------------
     # 📅 TAB 1: 기존 기능 (학생이 직접 기간 선택)
@@ -631,6 +635,83 @@ def student_page():
             fig2.update_traces(textfont_size=14)
   
             st.plotly_chart(fig2, use_container_width=True, key="fig_w_target_chart")
+
+    with tab3:
+    st.subheader("📈 변수별 주간 평균 추이")
+
+    st.caption("각 변수의 1주일 평균 학습시간을 꺾은선 그래프로 표시합니다.")
+
+    # ------------------ 그룹 & 변수 선택 ------------------
+    selected_group = st.selectbox(
+        "그룹 선택 (주간 평균)",
+        list(GROUPS.keys()),
+        key="weekly_line_group"
+    )
+
+    variables = GROUPS[selected_group]
+
+    selected_vars = st.multiselect(
+        "변수 선택 (주간 평균)",
+        variables,
+        default=variables,
+        key="weekly_line_vars"
+    )
+
+    if not selected_vars:
+        st.info("하나 이상의 변수를 선택해주세요.")
+        st.stop()
+
+    # ------------------ 날짜 전처리 ------------------
+    df_line = df_csv.copy()
+    df_line["일시"] = pd.to_datetime(df_line["일시"], errors="coerce")
+    df_line = df_line.dropna(subset=["일시"])
+
+    # 주차 컬럼 (월요일 기준 주)
+    df_line["주차"] = df_line["일시"].dt.to_period("W-MON").astype(str)
+
+    # ------------------ 주차별 평균 계산 ------------------
+    weekly_avg = (
+        df_line
+        .groupby("주차")[selected_vars]
+        .mean()
+        .reset_index()
+    )
+
+    if weekly_avg.empty:
+        st.warning("주간 평균을 계산할 데이터가 없습니다.")
+        st.stop()
+
+    # ------------------ 꺾은선 그래프 ------------------
+    fig = go.Figure()
+
+    for var in selected_vars:
+        fig.add_trace(go.Scatter(
+            x=weekly_avg["주차"],
+            y=weekly_avg[var],
+            mode="lines+markers",
+            name=var,
+            hovertemplate=(
+                f"{var}<br>"
+                "주차: %{x}<br>"
+                "평균: %{y:.2f}시간"
+                "<extra></extra>"
+            )
+        ))
+
+    fig.update_layout(
+        xaxis_title="주차",
+        yaxis_title="주간 평균 시간(시간)",
+        template="plotly_white",
+        height=600,
+        legend_title="변수",
+        hovermode="x unified",
+        margin=dict(l=40, r=40, t=60, b=120)
+    )
+
+    fig.update_traces(marker=dict(size=8), line=dict(width=3))
+
+    st.plotly_chart(fig, use_container_width=True)
+
                 
     # ------------------ 로그아웃 ------------------
     if st.button("🔙 로그아웃"):
