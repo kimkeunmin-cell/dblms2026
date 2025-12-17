@@ -638,9 +638,6 @@ def student_page():
     with tab3:
 		st.subheader("📈 변수별 주간 평균 추이")
 
-
-
-	
     # ------------------ 로그아웃 ------------------
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
