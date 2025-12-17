@@ -190,7 +190,8 @@ def student_page():
             sheet_id = sheet_url.split('/d/')[1].split('/')[0]
             csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
-			st.session_state["df_csv"] = df_csv
+
+            st.session_state["df_csv"] = df_csv
 
             # 컬럼 정규화
             df_csv.columns = (
