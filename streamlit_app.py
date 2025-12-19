@@ -144,10 +144,11 @@ def make_teacher_comment_soft(curr, prev):
 
 # 주간 리포트 요약
 def make_student_weekly_summary(df_student):
-    """
-    df_student: 한 학생의 주차별 통계 (주차번호 기준 정렬 가능)
-    """
-    df_student = df_student.sort_values("주차번호")
+    df = df_student.copy()
+
+    # ✅ 주차번호가 있으면 정렬, 없으면 그대로
+    if "주차번호" in df.columns:
+        df = df.sort_values("주차번호")
 
     if len(df_student) < 2:
         return  {
@@ -172,6 +173,7 @@ def make_student_weekly_summary(df_student):
 
     # ---------------- 문장 생성 ----------------
     summary = (
+        f"최소 권장 평균 공부시간과 수면시간은 6.5시간입니다. "
         f"{curr['주차']} 기준 평균 공부시간은 "
         f"{curr['공부총합']:.1f}시간으로 전주 대비 "
         f"{study_diff:+.1f}시간 {study_trend}했으며, "
