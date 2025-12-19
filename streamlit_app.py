@@ -227,7 +227,15 @@ def student_page():
                 f"<a class='open-sheet-btn' href='{sheet_url}' target='_blank'>📄 Google Sheet 새 탭에서 열기</a>",
                 unsafe_allow_html=True
             )
-        
+            
+        for _, row in students_df.iterrows():
+            user_id = row["id"]
+            sheet_url = row.get("sheet_url", "")
+
+        if not isinstance(sheet_url, str) or "/d/" not in sheet_url:
+            st.warning(f"⚠ 시트 미연결 계정 건너뜀: {user_id}")
+            continue
+
         sheet_id = sheet_url.split("/d/")[1].split("/")[0]
         csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
 
