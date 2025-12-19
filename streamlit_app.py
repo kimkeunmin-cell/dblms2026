@@ -228,14 +228,6 @@ def student_page():
                 unsafe_allow_html=True
             )
             
-        for _, row in students_df.iterrows():
-            user_id = row["id"]
-            sheet_url = row.get("sheet_url", "")
-            
-            if not isinstance(sheet_url, str) or "/d/" not in sheet_url:
-                st.warning(f"⚠ 시트 미연결 계정 건너뜀: {user_id}")
-                continue
-
         sheet_id = sheet_url.split("/d/")[1].split("/")[0]
         csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
 
@@ -832,12 +824,20 @@ def student_page():
 
         st.plotly_chart(fig, use_container_width=True)
 
-    # ---------------- TAB 3 ----------------
+    # ---------------- TAB admin ----------------
     with tab_admin:
         st.write("나와라!")
         st.subheader("🧑‍🏫 전체 학생 · 전체 과목 주간 통계 CSV")
 
         st.caption("모든 학생의 Google Sheet를 불러와 과목별 · 주차별 평균을 생성합니다.")
+        
+        df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
+
+        # 학생 계정만 필터
+        students_df = df_accounts[df_accounts["role"] == "student"]
+
+        if students_df.empty:
+            st.warning("학생 계정이 없습니다.")
 
         if st.button("📥 전체 과목 주간 통계 CSV 생성"):
             st.write("csv 생성 시작")
@@ -867,6 +867,14 @@ def student_page():
                     if row.empty:
                         continue
 
+                for _, row in students_df.iterrows():
+                    user_id = row["id"]
+                    sheet_url = row.get("sheet_url", "")
+            
+                    if not isinstance(sheet_url, str) or "/d/" not in sheet_url:
+                        st.warning(f"⚠ 시트 미연결 계정 건너뜀: {user_id}")
+                        continue
+                    
                     sheet_url = row.iloc[0]["sheet_url"]
                     sheet_id = sheet_url.split("/d/")[1].split("/")[0]
                     csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
