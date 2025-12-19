@@ -100,8 +100,6 @@ def login_page():
             st.error("아이디 또는 비밀번호가 잘못되었습니다.")
 
 # ================== 학생 페이지 ==================
-st.write("DEBUG role:", st.session_state.get("role"))
-
 def student_page():
     st.markdown("""
         <style>
@@ -846,6 +844,7 @@ def student_page():
         st.caption("모든 학생의 Google Sheet를 불러와 과목별 · 주차별 평균을 생성합니다.")
 
         if st.button("📥 전체 과목 주간 통계 CSV 생성"):
+            st.write("csv 생성 시작")
             with st.spinner("모든 학생 데이터 처리 중..."):
 
                 df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
