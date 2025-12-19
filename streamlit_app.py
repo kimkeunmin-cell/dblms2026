@@ -1,6 +1,4 @@
 import streamlit as st
-st.write("🚀 파일 로드됨")
-
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -846,3 +844,5 @@ def app():
         login_page()
     else:
         student_page()
+
+app()
