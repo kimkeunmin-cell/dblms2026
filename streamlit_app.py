@@ -320,7 +320,7 @@ def student_page():
     
         if not selected_vars:
             st.info("하나 이상의 변수를 선택해주세요.")
-            st.stop()
+            return None
 
         # ------------------ 누적 막대 그래프 ------------------
         st.markdown("---")
