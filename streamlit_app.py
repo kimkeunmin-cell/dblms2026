@@ -100,6 +100,8 @@ def login_page():
             st.error("아이디 또는 비밀번호가 잘못되었습니다.")
 
 # ================== 학생 페이지 ==================
+st.write("DEBUG role:", st.session_state.get("role"))
+
 def student_page():
     st.markdown("""
         <style>
