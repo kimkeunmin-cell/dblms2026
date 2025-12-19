@@ -304,7 +304,7 @@ def student_page():
                             if not pd.isna(val):
                                 total_sum += val
 
-                        row_data["4대합총합"] = round(total_sum, 2)
+                        row_data["공부총합"] = round(total_sum, 2)
                         all_results.append(row_data)
 
                 # -------------------------------
@@ -315,7 +315,7 @@ def student_page():
         
                 result_df = pd.DataFrame(all_results)
 
-                final_cols = ["학생ID"] + ALL_VARS + ["4대합총합"]
+                final_cols = ["학생ID"] + ALL_VARS + ["공부총합"]
                 result_df = result_df[final_cols]
 
                 st.success("CSV 생성 완료!")
@@ -330,14 +330,6 @@ def student_page():
                     result_df.to_csv(index=False, encoding="utf-8"),
                     "전체학생_전체과목_주간통계.csv",
                     "text/csv"
-                )
-
-                st.download_button(
-                    "⬇️ 전체 과목 주간 통계 CSV 다운로드",
-                    result_df.to_csv(index=False, encoding="utf-8-sig"),
-                    file_name="전체학생_전체과목_주간통계.csv",
-                    mime="text/csv",
-                    key="admin_weekly_csv_download"
                 )
 
         if st.button("🔙 로그아웃"):
