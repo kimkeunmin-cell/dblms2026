@@ -332,7 +332,6 @@ def student_page():
                     "text/csv"
                 )
 
-                st.success("CSV 생성 완료!")
                 st.download_button(
                     "⬇️ 전체 과목 주간 통계 CSV 다운로드",
                     result_df.to_csv(index=False, encoding="utf-8-sig"),
