@@ -315,6 +315,7 @@ def student_page():
                             val = row_data.get(v)
                             if not pd.isna(val):
                                 total_sum += val
+
                         sleep_sum = 0
                         for i in ["낮잠(시간)", "밤잠(시간)"]:
                             vv = row_data.get(i)
@@ -333,7 +334,7 @@ def student_page():
         
                 result_df = pd.DataFrame(all_results)
 
-                final_cols = ["학생ID"] + +ALL_VARS + ["공부총합", "수면합"]
+                final_cols = ["학생ID"] + +ALL_VARS + ["공부총합"] + ["수면합"]
                 result_df = result_df[final_cols]
 
                 st.success("CSV 생성 완료!")
