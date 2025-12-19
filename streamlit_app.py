@@ -119,7 +119,7 @@ def student_page():
     
     st.title(f"학생 페이지 - {st.session_state['user_id']}")
 
-    tab1, tab2 = st.tabs(["📅 직접 기간 선택", "📊 주간별 리포트"])
+    tab1, tab2, tab3 = st.tabs(["📅 직접 기간 선택", "📊 주간별 리포트", "📈 주간 평균 변화"])
 
     # ---------------- TAB 1 ----------------
     with tab1:
@@ -628,6 +628,42 @@ def student_page():
             fig2.update_traces(textfont_size=14)
   
             st.plotly_chart(fig2, use_container_width=True, key="fig_w_target_chart")
+            
+    # ---------------- TAB 3 ----------------
+    with tab3:
+        st.subheader("주간별 평균 변화")
+        if "df_csv" not in st.session_state:
+            st.warning("📅 먼저 [직접 기간 선택] 탭에서 데이터를 불러주세요.")
+            return None
+        
+        df = st.session_state["df_csv"].copy()
+        df["주차"] = df["일시"].dt.to_period("W").astype(str)
+        
+        group = st.selectbox("그룹 선택", GROUPS.keys(), key="tab3_group")
+        vars_ = st.multiselect("변수 선택", GROUPS[group], default=GROUPS[group])
+
+        if not vars_:
+            st.info("변수 선택 필요")
+            return None
+        
+        weekly_avg = df.groupby("주차")[vars_].mean().reset_index()
+
+        fig = go.Figure()
+        for v in vars_:
+            fig.add_trace(go.Scatter(
+                x=weekly_avg["주차"],
+                y=weekly_avg[v],
+                mode="lines+markers",
+                name=v
+            ))
+
+        fig.update_layout(
+            title="주간 평균 변화",
+            yaxis_title="시간",
+            xaxis_title="주차",
+            height=600
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
     # 로그아웃
     if st.button("🔙 로그아웃"):
