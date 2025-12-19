@@ -195,11 +195,14 @@ def student_page():
                 st.error("시작 주차는 끝 주차보다 클 수 없습니다.")
 
             start_date = pd.to_datetime(PRESET_PERIODS[admin_start_week][0])
-            end_date = pd.to_datetime(PRESET_PERIODS[admin_end_week][1]) + pd.Timedelta(days=1)
+            end_date = pd.to_datetime(PRESET_PERIODS[admin_end_week][1]) 
 
 
             df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
             df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
+            df_accounts["id"] = df_accounts["id"].str.strip()
+            df_sheets["id"] = df_sheets["id"].str.strip()
+
 
             students_df = df_accounts[df_accounts["role"] == "student"]
             st.write("학생 수:", len(students_df))
