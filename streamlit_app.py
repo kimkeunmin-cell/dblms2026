@@ -794,7 +794,13 @@ def student_page():
             .reset_index()
             .sort_values("주차번호")
         )
-    
+
+        # ------------------ 주차 간 증감 계산 ------------------
+        diff_df = weekly_avg.copy()
+
+        for var in selected_vars:
+            diff_df[f"{var}_diff"] = diff_df[var].diff()
+
         # 누적 막대 그래프
         fig = go.Figure()
 
