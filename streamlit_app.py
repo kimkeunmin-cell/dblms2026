@@ -415,6 +415,7 @@ def student_page():
         try:
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
             # 컬럼 정규화
+            st.write(df_csv.columns)
             df_csv.columns = (
                 df_csv.columns
                 .str.strip()
