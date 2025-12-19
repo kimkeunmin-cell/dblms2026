@@ -685,7 +685,7 @@ def student_page():
         col1, col2 = st.columns(2)
 
         with col1:
-            start_week_label = st.selectbox(
+            start_week = st.selectbox(
                 "시작 주차",
                 week_keys,
                 index=0,
@@ -693,7 +693,7 @@ def student_page():
             )
 
         with col2:
-            end_week_label = st.selectbox(
+            end_week = st.selectbox(
                 "끝 주차",
                 week_keys,
                 index=10,
