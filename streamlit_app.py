@@ -676,14 +676,18 @@ def student_page():
             return None
         
         df = st.session_state["df_csv"].copy()
+        df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
+        df = df.dropna(subset=["일시"])
 
         # 기간 선택
+        st.markdown("### 🗓 주차 범위 선택")
+        week_keys = list(PRESET_PERIODS.keys())
         col1, col2 = st.columns(2)
 
         with col1:
             start_week_label = st.selectbox(
                 "시작 주차",
-                list(PRESET_PERIODS.keys()),
+                week_keys,
                 index=0,
                 key="tab3_start_week"
             )
@@ -691,18 +695,37 @@ def student_page():
         with col2:
             end_week_label = st.selectbox(
                 "끝 주차",
-                list(PRESET_PERIODS.keys()),
+                week_keys,
                 index=10,
                 key="tab3_end_week"
             )
-
-        start_week = PRESET_PERIODS[start_week_label]
-        end_week = PRESET_PERIODS[end_week_label]
-
-        if start_week > end_week:
+        # ------------------ 선택 검증 ------------------
+        start_idx = week_keys.index(start_week)
+        end_idx = week_keys.index(end_week)
+    
+        if start_idx > end_idx:
             st.error("시작 주차는 끝 주차보다 클 수 없습니다.")
             return None
+            
+        # ------------------ 날짜 범위 계산 ------------------
+        start_date = pd.to_datetime(PRESET_PERIODS[start_week][0])
+        end_date = pd.to_datetime(PRESET_PERIODS[end_week][1])
 
+        st.info(
+            f"📌 선택 기간: **{start_week} ~ {end_week}**  \n"
+            f"({start_date.date()} ~ {end_date.date()})"
+        )
+
+        # ------------------ 데이터 필터 ------------------
+        df_period = df[
+            (df["일시"] >= start_date) &
+            (df["일시"] <= end_date)
+        ]
+
+        if df_period.empty:
+            st.warning("선택한 기간에 데이터가 없습니다.")
+            return None
+       
         # 그룹 & 변수 선택
         selected_group = st.selectbox(
             "그룹 선택 (주간 누적)",
