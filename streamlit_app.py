@@ -4,6 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 import datetime
 import plotly.express as px
+import io
 
 # ================== 기본 설정 ==================
 st.set_page_config(page_title="학습 관리 시스템", layout="centered")
@@ -77,6 +78,17 @@ PRESET_PERIODS = {
     "42주차 (12/13~12/19)": ("2026-12-13", "2026-12-19"),
     "43주차 (12/20~12/26)": ("2026-12-20", "2026-12-26"),
     "44주차 (12/27~12/31)": ("2026-12-27", "2026-12-31")}
+
+def dataframe_to_xlsx_bytes(df, sheet_name="Sheet1"):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(
+            writer,
+            index=False,
+            sheet_name=sheet_name
+        )
+    output.seek(0)
+    return output
 
 # ================== 로그인 ==================
 def check_login(user_id, user_pw):
@@ -324,12 +336,17 @@ def student_page():
                     result_df.head(100),
                     use_container_width=True
                 )
+                xlsx_bytes = dataframe_to_xlsx_bytes(
+                    result_df,
+                    sheet_name="전체학생_주간통계"
+                )
 
                 st.download_button(
-                    "⬇️ 전체 과목 주간 통계 CSV 다운로드",
-                    result_df.to_csv(index=False, encoding="utf-8-sig"),
-                    "전체학생_전체과목_주간통계.csv",
-                    "text/csv"
+                    label="⬇️ 전체 학생 주간 통계 XLSX 다운로드",
+                    data=xlsx_bytes,
+                    file_name="전체학생_전체과목_주간통계.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="admin_weekly_xlsx_download"
                 )
 
         if st.button("🔙 로그아웃"):
