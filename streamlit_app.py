@@ -286,12 +286,12 @@ def student_page():
                         df = df[(df["일시"] >= start_date) & (df["일시"] <= end_date)]
 
                         for v in ALL_VARS:
-                            if v not in df_period.columns:
-                                df_period[v] = np.nan
+                            if v not in df.columns:
+                                df[v] = np.nan
                             else:
-                                df_period[v] = pd.to_numeric(df_period[v], errors="coerce")
+                                df[v] = pd.to_numeric(df[v], errors="coerce")
 
-                        means = df_period[ALL_VARS].mean()
+                        means = df[ALL_VARS].mean()
                
                         row_data = {"학생ID": user_id}
 
