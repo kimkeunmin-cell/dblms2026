@@ -743,6 +743,9 @@ def student_page():
         if not selected_vars:
             st.info("하나 이상의 변수를 선택해주세요.")
             return None
+        
+        # ------------------ 주차 컬럼 생성 ------------------
+        df_period["주차"] = df_period["일시"].dt.to_period("W-SUN").astype(str)
 
         # 주차별 평균
         weekly_avg = (
