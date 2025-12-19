@@ -241,6 +241,15 @@ def student_page():
 
                         try:
                             df = pd.read_csv(csv_url, engine="python", on_bad_lines="skip")
+                            # 컬럼 정규화
+                            df.columns = (
+                                df.columns
+                                .str.strip()
+                                .str.replace('\r','',regex=False)
+                                .str.replace('\n','',regex=False)
+                                .str.replace(' ','',regex=False)
+                                .str.replace('　','',regex=False)
+                            )                       
                         except:
                             continue
 
@@ -249,10 +258,6 @@ def student_page():
 
                         df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
                         df = df.dropna(subset=["일시"])
-                        df = df[
-                            (df["일시"] >= start_date) &
-                            (df["일시"] < end_date)
-                        ]
 
                         # 주차 매핑
                         df["주차번호"] = np.nan
@@ -267,8 +272,7 @@ def student_page():
 
                         # GROUPS 전체
                         for group_name, vars_ in GROUPS.items():
-                            valid = vars_
-                            for v in valid:
+                            for v in vars_:
                                 if v not in df.columns:
                                     df[v] = np.nan
 
