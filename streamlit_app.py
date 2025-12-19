@@ -215,6 +215,18 @@ def student_page():
                 with st.spinner("학생 데이터 처리 중..."):
                     # 주차 테이블
                     week_rows = []
+                    week_rows = []
+                    for i in range(start_idx, end_idx + 1):
+                        w = week_keys[i]
+                        s, e = PRESET_PERIODS[w]
+                        week_rows.append({
+                            "주차번호": int(w.split("주차")[0]),
+                            "주차": w,
+                            "start": pd.to_datetime(s),
+                            "end": pd.to_datetime(e)
+                        })
+                    df_weeks = pd.DataFrame(week_rows)
+
                     for w, (s, e) in PRESET_PERIODS.items():
                         week_rows.append({
                             "주차번호": int(w.split("주차")[0]),
@@ -258,6 +270,7 @@ def student_page():
 
                         df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
                         df = df.dropna(subset=["일시"])
+                        df = df[(df["일시"] >= start_date) & (df["일시"] <= end_date)]
 
                         # 주차 매핑
                         df["주차번호"] = np.nan
