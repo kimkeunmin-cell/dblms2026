@@ -744,20 +744,6 @@ def student_page():
             st.info("하나 이상의 변수를 선택해주세요.")
             return None
 
-        # 주차 생성
-        df["주차번호"] = df["일시"].dt.isocalendar().week.astype(int)
-        df["주차"] = df["주차번호"].astype(str) + "주차"
-
-        # ------------------ 기간 필터 ------------------
-        df_period = df[
-            (df["주차번호"] >= start_week) &
-            (df["주차번호"] <= end_week)
-        ]
-
-        if df_period.empty:
-            st.warning("선택한 주차 구간에 데이터가 없습니다.")
-            return None
-            
         # 주차별 평균
         weekly_avg = (
             df_period
