@@ -327,7 +327,7 @@ def student_page():
 
                 st.download_button(
                     "⬇️ 전체 과목 주간 통계 CSV 다운로드",
-                    result_df.to_csv(index=False, encoding="cp949"),
+                    result_df.to_csv(index=False, encoding="euc-kr"),
                     "전체학생_전체과목_주간통계.csv",
                     "text/csv"
                 )
