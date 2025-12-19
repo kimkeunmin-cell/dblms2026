@@ -637,34 +637,74 @@ def student_page():
             return None
         
         df = st.session_state["df_csv"].copy()
-        df["주차"] = df["일시"].dt.to_period("W").astype(str)
-        
-        group = st.selectbox("그룹 선택", GROUPS.keys(), key="tab3_group")
-        vars_ = st.multiselect("변수 선택", GROUPS[group], default=GROUPS[group])
 
-        if not vars_:
-            st.info("변수 선택 필요")
+        # 그룹 & 변수 선택
+        selected_group = st.selectbox(
+            "그룹 선택 (주간 누적)",
+            list(GROUPS.keys()),
+            key="tab3_group"
+        )
+        
+        selected_vars = st.multiselect(
+            "변수 선택 (주간 누적)",
+            GROUPS[selected_group],
+            default=GROUPS[selected_group],
+            key="tab3_vars"
+        )
+
+        if not selected_vars:
+            st.info("하나 이상의 변수를 선택해주세요.")
             return None
-        
-        weekly_avg = df.groupby("주차")[vars_].mean().reset_index()
 
+        # 주차 생성
+        df["주차"] = df["일시"].dt.to_period("W-MON").astype(str)
+        
+        # 주차별 평균
+        weekly_sum = (
+            df.groupby("주차")[selected_vars]
+            .mean()
+            .reset_index()
+        )
+
+        if weekly_sum.empty:
+            st.warning("주간 데이터가 없습니다.")
+            return None
+
+        # 누적 막대 그래프
         fig = go.Figure()
-        for v in vars_:
-            fig.add_trace(go.Scatter(
-                x=weekly_avg["주차"],
-                y=weekly_avg[v],
-                mode="lines+markers",
-                name=v
+
+        for var in selected_vars:
+            fig.add_trace(go.Bar(
+                y=weekly_sum["주차"],
+                x=pd.to_numeric(weekly_sum[var], errors="coerce").fillna(0),
+                orientation="h",
+                name=var,
+                text=pd.to_numeric(weekly_sum[var], errors="coerce").fillna(0).round(2),
+                texttemplate="%{text}",
+                textposition="inside",
+                hovertemplate=(
+                    f"{var}<br>"
+                    "주차: %{y}<br>"
+                    "합계: %{x:.2f}시간"
+                    "<extra></extra>"
+                )
             ))
 
         fig.update_layout(
-            title="주간 평균 변화",
-            yaxis_title="시간",
-            xaxis_title="주차",
-            height=600
+            barmode="stack",
+            xaxis_title="주간 누적 시간(시간)",
+            yaxis_title="주차",
+            yaxis=dict(autorange="reversed"),
+            height=600,
+            template="plotly_white",
+            legend_title="변수",
+            margin=dict(l=40, r=40, t=60, b=80)
         )
-        st.plotly_chart(fig, use_container_width=True)
 
+        fig.update_traces(textfont_size=13)
+
+        st.plotly_chart(fig, use_container_width=True)
+    
     # 로그아웃
     if st.button("🔙 로그아웃"):
         st.session_state.clear()
