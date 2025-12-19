@@ -21,6 +21,16 @@ GROUPS = {
     "탐구": ["통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)"]
 }
 
+# GROUPS 전체 변수 (중복 제거)
+ALL_VARS = []
+for vars_ in GROUPS.values():
+    for v in vars_:
+        if v not in ALL_VARS:
+            ALL_VARS.append(v)
+
+# 합산 대상
+SUM_VARS = ["국어합(시간)", "수학합(시간)", "영어합(시간)", "탐구합(시간)"]
+
 # 주간 리포트용 기간
 PRESET_PERIODS = {
     "1주차 (3/1~3/7)": ("2026-03-01", "2026-03-07"),
@@ -275,48 +285,40 @@ def student_page():
                         df = df.dropna(subset=["일시"])
                         df = df[(df["일시"] >= start_date) & (df["일시"] <= end_date)]
 
-                        # 주차 매핑
-                        df["주차번호"] = np.nan
-                        df["주차"] = None
+                        for v in ALL_VARS:
+                            if v not in df_period.columns:
+                                df_period[v] = np.nan
+                            else:
+                                df_period[v] = pd.to_numeric(df_period[v], errors="coerce")
 
-                        for _, w in df_weeks.iterrows():
-                            mask = (df["일시"] >= w["start"]) & (df["일시"] <= w["end"])
-                            df.loc[mask, "주차번호"] = w["주차번호"]
-                            df.loc[mask, "주차"] = w["주차"]
+                        means = df_period[ALL_VARS].mean()
+               
+                        row_data = {"학생ID": user_id}
 
-                        df = df.dropna(subset=["주차번호"])
+                        for v in ALL_VARS:
+                            row_data[v] = round(means.get(v, np.nan), 2)
 
-                        # GROUPS 전체
-                        for group_name, vars_ in GROUPS.items():
-                            for v in vars_:
-                                if v not in df.columns:
-                                    df[v] = np.nan
+                        total_sum = 0
+                        for v in SUM_VARS:
+                            val = row_data.get(v)
+                            if not pd.isna(val):
+                                total_sum += val
 
-                            weekly_avg = (
-                                df.groupby(["주차번호", "주차"])[vars_]
-                                .mean()
-                                .reset_index()
-                            )
+                        row_data["4대합총합"] = round(total_sum, 2)
+                        all_results.append(row_data)
 
-                            melted = weekly_avg.melt(
-                                id_vars=["주차번호", "주차"],
-                                var_name="변수",
-                                value_name="주간평균"
-                            )
-
-                            melted["학생ID"] = user_id
-                            melted["그룹"] = group_name
-                            all_results.append(melted)
-
+                # -------------------------------
+                # 결과 처리
+                # -------------------------------
                 if not all_results:
                     st.warning("생성된 데이터가 없습니다.")
-                    return
+        
+                result_df = pd.DataFrame(all_results)
 
-                result_df = pd.concat(all_results, ignore_index=True)
-                result_df = pd.concat(all_results, ignore_index=True)
+                final_cols = ["학생ID"] + ALL_VARS + ["4대합총합"]
+                result_df = result_df[final_cols]
 
                 st.success("CSV 생성 완료!")
-
                 st.markdown("### 👀 CSV 미리보기 (상위 100행)")
                 st.dataframe(
                     result_df.head(100),
