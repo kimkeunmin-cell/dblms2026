@@ -160,7 +160,14 @@ def student_page():
     
     st.title(f"학생 페이지 - {st.session_state['user_id']}")
 
-    tab1, tab2, tab3 = st.tabs(["📅 직접 기간 선택", "📊 주간별 리포트", "📈 주간 평균 변화"])
+    if st.session_state["role"] == "admin":
+        tab1, tab2, tab3, tab_admin = st.tabs(
+            ["📅 직접 기간 선택", "📊 주간별 리포트", "📈 주간 평균 변화", "🧑‍🏫 관리자"]
+        )
+    else:
+        tab1, tab2, tab3 = st.tabs(
+            ["📅 직접 기간 선택", "📊 주간별 리포트", "📈 주간 평균 변화"]
+        )
 
     # ---------------- TAB 1 ----------------
     with tab1:
@@ -829,6 +836,106 @@ def student_page():
         fig.update_traces(textfont_size=13)
 
         st.plotly_chart(fig, use_container_width=True)
+
+    # ---------------- TAB 3 ----------------
+    with tab_admin:
+    with tab_admin:
+        st.subheader("🧑‍🏫 전체 학생 · 전체 과목 주간 통계 CSV")
+
+        st.caption("모든 학생의 Google Sheet를 불러와 과목별 · 주차별 평균을 생성합니다.")
+
+        if st.button("📥 전체 과목 주간 통계 CSV 생성"):
+            with st.spinner("모든 학생 데이터 처리 중..."):
+
+                df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
+                df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
+
+                students = df_accounts[df_accounts["role"] == "student"]["id"].tolist()
+                all_results = []
+
+                # ------------------ 주차 매핑 테이블 ------------------
+                week_rows = []
+                for week_name, (start, end) in PRESET_PERIODS.items():
+                    week_num = int(week_name.split("주차")[0])
+                    week_rows.append({
+                        "주차번호": week_num,
+                        "주차": week_name,
+                        "start": pd.to_datetime(start),
+                        "end": pd.to_datetime(end)
+                    })
+                df_weeks = pd.DataFrame(week_rows)
+
+                # ------------------ 학생별 처리 ------------------
+                for student_id in students:
+                    row = df_sheets[df_sheets["id"] == student_id]
+                    if row.empty:
+                        continue
+
+                    sheet_url = row.iloc[0]["sheet_url"]
+                    sheet_id = sheet_url.split("/d/")[1].split("/")[0]
+                    csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
+
+                    try:
+                        df = pd.read_csv(csv_url, engine="python", on_bad_lines="skip")
+                    except:
+                        continue
+
+                    if "일시" not in df.columns:
+                        continue
+
+                    df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
+                    df = df.dropna(subset=["일시"])
+
+                    # ------------------ 주차 부여 ------------------
+                    df["주차번호"] = np.nan
+                    df["주차"] = None
+
+                    for _, w in df_weeks.iterrows():
+                        mask = (df["일시"] >= w["start"]) & (df["일시"] <= w["end"])
+                        df.loc[mask, "주차번호"] = w["주차번호"]
+                        df.loc[mask, "주차"] = w["주차"]
+    
+                    df = df.dropna(subset=["주차번호"])
+
+                    # ------------------ GROUPS 전체 순회 ------------------
+                    for group_name, variables in GROUPS.items():
+                        valid_vars = [v for v in variables if v in df.columns]
+                        if not valid_vars:
+                            continue
+    
+                        weekly_avg = (
+                            df
+                            .groupby(["주차번호", "주차"])[valid_vars]
+                            .mean()
+                            .reset_index()
+                        )    
+
+                        # long format 변환
+                        melted = weekly_avg.melt(
+                            id_vars=["주차번호", "주차"],
+                            var_name="변수",
+                            value_name="주간평균"
+                        )
+
+                        melted["학생ID"] = student_id
+                        melted["그룹"] = group_name
+    
+                        all_results.append(melted)
+
+                # ------------------ 결과 출력 ------------------
+                if not all_results:
+                    st.warning("처리된 데이터가 없습니다.")
+                else:
+                    result_df = pd.concat(all_results, ignore_index=True)
+
+                    st.success("CSV 생성 완료!")
+
+                    st.download_button(
+                        label="⬇️ 전체 과목 주간 통계 CSV 다운로드",
+                        data=result_df.to_csv(index=False, encoding="utf-8-sig"),
+                        file_name="전체학생_전체과목_주간통계.csv",
+                        mime="text/csv"
+                    )
     
     # 로그아웃
     if st.button("🔙 로그아웃"):
