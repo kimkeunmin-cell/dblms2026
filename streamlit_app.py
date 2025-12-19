@@ -208,9 +208,11 @@ def student_page():
             row = df_sheets[df_sheets["id"] == st.session_state["user_id"]]
             if row.empty:
                 st.warning("시트가 연결되지 않았습니다.")
+                st.stop()
             sheet_url = row.iloc[0]["sheet_url"]
         except:
             st.warning("시트 정보를 불러올 수 없습니다.")
+            st.stop()
 
         if device == "PC":
             try:
@@ -469,6 +471,7 @@ def student_page():
         st.subheader("주간별 리포트")
         if "df_csv" not in st.session_state:
             st.warning("📅 먼저 [직접 기간 선택] 탭에서 데이터를 불러주세요.")
+            st.stop()
         df_csv = st.session_state["df_csv"]
 
         # --- State 초기화 ---
@@ -673,6 +676,7 @@ def student_page():
         st.subheader("주간별 평균 변화")
         if "df_csv" not in st.session_state:
             st.warning("📅 먼저 [직접 기간 선택] 탭에서 데이터를 불러주세요.")
+            st.stop()
         
         df = st.session_state["df_csv"].copy()
         df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
@@ -760,7 +764,8 @@ def student_page():
         df_weeks = pd.DataFrame(week_rows)
 
         # ------------------ 날짜 → 주차 매핑 ------------------
-        df_period["주차번호"] = None
+        df_period = df_period.copy()
+        df_period["주차번호"] = np.nan
         df_period["주차"] = ""
         df_period["주차번호"] = df_period["주차번호"].astype("float")
 
@@ -862,20 +867,19 @@ def student_page():
                 df_weeks = pd.DataFrame(week_rows)
 
                 # ------------------ 학생별 처리 ------------------
-                for student_id in students:
-                    row = df_sheets[df_sheets["id"] == student_id]
-                    if row.empty:
+                for _, row in students_df.iterrows():
+                    student_id = row["id"]
+
+                    sheet_row = df_sheets[df_sheets["id"] == student_id]
+                    if sheet_row.empty:
                         continue
 
-                for _, row in students_df.iterrows():
-                    user_id = row["id"]
-                    sheet_url = row.get("sheet_url", "")
-            
+                    sheet_url = sheet_row.iloc[0]["sheet_url"]
+
                     if not isinstance(sheet_url, str) or "/d/" not in sheet_url:
                         st.warning(f"⚠ 시트 미연결 계정 건너뜀: {user_id}")
                         continue
-                    
-                    sheet_url = row.iloc[0]["sheet_url"]
+
                     sheet_id = sheet_url.split("/d/")[1].split("/")[0]
                     csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
 
