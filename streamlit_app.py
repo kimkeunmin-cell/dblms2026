@@ -267,7 +267,7 @@ def student_page():
                             )                       
                         except:
                             continue
-
+                        st.write(df.columns)
                         if "일시" not in df.columns:
                             continue
 
@@ -423,6 +423,7 @@ def student_page():
                 .str.replace(' ','',regex=False)
                 .str.replace('　','',regex=False)
             )
+            st.write(df_csv.columns)
             df_csv["일시"] = pd.to_datetime(df_csv["일시"], errors="coerce")
             df_csv = df_csv.dropna(subset=["일시"])
             st.session_state["df_csv"] = df_csv
