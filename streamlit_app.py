@@ -12,6 +12,11 @@ st.set_page_config(page_title="학습 관리 시스템", layout="centered")
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
 
+# ---------- 기준값 ----------
+MIN_STUDY_HOURS = 45.5    # 주당 최소 공부 시간 (6.5h * 7)
+MIN_SLEEP_HOURS = 45.5    # 주당 최소 수면 시간 (6.5h * 7)
+
+
 # 변수 정의
 GROUPS = {
     "수면": ["낮잠(시간)", "밤잠(시간)"],
@@ -79,6 +84,7 @@ PRESET_PERIODS = {
     "43주차 (12/20~12/26)": ("2026-12-20", "2026-12-26"),
     "44주차 (12/27~12/31)": ("2026-12-27", "2026-12-31")}
 
+# 통계 다운로드용
 def dataframe_to_xlsx_bytes(df, sheet_name="통계"):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
@@ -89,6 +95,97 @@ def dataframe_to_xlsx_bytes(df, sheet_name="통계"):
         )
     output.seek(0)
     return output
+
+# 경고 또는 응원 문장
+def make_warning_sentence(curr):
+    warnings = []
+
+    if curr["공부총합"] < MIN_STUDY_HOURS:
+        warnings.append(
+            f"공부 시간이 권장 기준({MIN_STUDY_HOURS}시간)에 미치지 못했습니다."
+        )
+
+    if curr["수면합"] < MIN_SLEEP_HOURS:
+        warnings.append(
+            f"수면 시간이 부족한 편입니다(권장 {MIN_SLEEP_HOURS}시간 이상)."
+        )
+
+    if not warnings:
+        return "학습 시간과 수면 시간이 모두 안정적으로 유지되고 있습니다."
+
+    return " ".join(warnings)
+
+# 교사용 코멘트 (여러 가지 경우의 수 만들어야 함) #######################################################################################
+def make_teacher_comment_soft(curr, prev):
+    study_diff = curr["공부총합"] - prev["공부총합"]
+
+    if study_diff > 0:
+        comment = (
+            "이전 주보다 학습량이 증가하였습니다. 긍정적인 변화입니다. "
+            "앞으로도 꾸준히 이어나가되, 과도한 무리로 흐름을 깨지 않도록 합시다."
+        )
+    elif study_diff < 0:
+        comment = (
+            "학습량이 다소 감소하였습니다. 꾸준히 모습이 보입니다. "
+            "무리하지 않는 선에서 학습 리듬을 다시 잡아갈 필요가 있습니다."
+        )
+    else:
+        comment = (
+            "학습량이 비교적 안정적으로 유지되고 있습니다. "
+            "현재의 학습 패턴을 꾸준히 이어가길 기대합니다."
+        )
+
+    if curr["수면합"] < MIN_SLEEP_HOURS:
+        comment += " 충분한 수면과 휴식이 있어야 안정적인 컨디션 관리를 할 수 있음에 유의합시다."
+
+    return comment
+
+# 교사용 코멘트 (여러 가지 경우의 수 만들어야 함) #######################################################################################
+
+# 주간 리포트 요약
+def make_student_weekly_summary(df_student):
+    """
+    df_student: 한 학생의 주차별 통계 (주차번호 기준 정렬 가능)
+    """
+    df_student = df_student.sort_values("주차번호")
+
+    if len(df_student) < 2:
+        return  {
+            "요약": "비교할 이전 주차 데이터가 부족합니다.",
+            "경고": "",
+            "교사코멘트": ""
+        }
+    prev = df_student.iloc[-2]
+    curr = df_student.iloc[-1]
+
+    # ---------------- 증감 계산 ----------------
+    study_diff = curr["공부총합"] - prev["공부총합"]
+    sleep_diff = curr["수면합"] - prev["수면합"]
+
+    study_trend = "증가" if study_diff > 0 else "감소" if study_diff < 0 else "유지"
+    sleep_trend = "증가" if sleep_diff > 0 else "감소" if sleep_diff < 0 else "유지"
+
+    # ---------------- 가장 많이 공부한 과목 ----------------
+    subjects = ["국어합(시간)", "수학합(시간)", "영어합(시간)", "탐구합(시간)"]
+    best_subject = curr[subjects].idxmax().replace("(시간)", "")
+    worst_subject = curr[subjects].idxmin().replace("(시간)", "")
+
+    # ---------------- 문장 생성 ----------------
+    summary = (
+        f"{curr['주차']} 기준 평균 공부시간은 "
+        f"{curr['공부총합']:.1f}시간으로 전주 대비 "
+        f"{study_diff:+.1f}시간 {study_trend}했으며, "
+        f"수면합은 {sleep_diff:+.1f}시간 {sleep_trend}했습니다. "
+        f"가장 많이 공부한 과목은 {best_subject}이고, "
+        f"가장 적게 공부한 과목은 {worst_subject}입니다."
+    )
+
+    return {
+        "요약": summary,
+        "경고": make_warning_sentence(curr),
+        "교사코멘트": make_teacher_comment_soft(curr, prev)
+    }
+
 
 # ================== 로그인 ==================
 def check_login(user_id, user_pw):
@@ -340,6 +437,18 @@ def student_page():
                               "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "공부총합"]
                 result_df = result_df[final_cols]
 
+                summary_rows = []
+
+                for student_id, df_s in result_df.groupby("학생ID"):
+                    summary_rows.append({
+                        "학생ID": student_id,
+                        "요약": make_student_weekly_summary(df_s)
+                    })
+
+                summary_df = pd.DataFrame(summary_rows)
+
+                result_df = result_df.merge(summary_df, on="학생ID", how="left")
+
                 st.success("CSV 생성 완료!")
                 st.markdown("### 👀 CSV 미리보기 (상위 100행)")
                 st.dataframe(
@@ -358,7 +467,14 @@ def student_page():
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     key="admin_weekly_xlsx_download"
                 )
+        
+        st.markdown("### 📝 학생별 자동 요약")
 
+        for student_id, df_s in result_df.groupby("학생ID"):
+            summary = make_student_weekly_summary(df_s)
+            st.info(f"👤 {student_id} : {summary}")
+
+        
         if st.button("🔙 로그아웃"):
             st.session_state.clear()
             st.rerun()
@@ -869,7 +985,12 @@ def student_page():
             fig2.update_traces(textfont_size=14)
   
             st.plotly_chart(fig2, use_container_width=True, key="fig_w_target_chart")
-            
+
+        st.markdown("### 📝 이번 주 학습 요약")
+
+        summary = make_student_weekly_summary(df_weekly)
+        st.success(summary)
+
     # ---------------- TAB 3 ----------------
     with tab3:
         st.subheader("주간별 평균 변화")
