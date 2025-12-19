@@ -315,7 +315,13 @@ def student_page():
                             val = row_data.get(v)
                             if not pd.isna(val):
                                 total_sum += val
+                        sleep_sum = 0
+                        for i in ["낮잠(시간)", "밤잠(시간)"]:
+                            vv = row_data.get(i)
+                            if not pd.isna(vv):
+                                sleep_sum += vv
 
+                        row_data["수면합"] = round(sleep_sum, 2)
                         row_data["공부총합"] = round(total_sum, 2)
                         all_results.append(row_data)
 
