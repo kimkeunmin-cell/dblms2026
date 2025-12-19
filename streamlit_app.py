@@ -795,55 +795,8 @@ def student_page():
             .sort_values("주차번호")
         )
 
-        # ------------------ 주차 간 증감 계산 ------------------
-        diff_df = weekly_avg.copy()
-
-        for var in selected_vars:
-            diff_df[f"{var}_diff"] = diff_df[var].diff()
-
         # 누적 막대 그래프
         fig = go.Figure()
-
-        for var in selected_vars:
-            values = pd.to_numeric(weekly_avg[var], errors="coerce").fillna(0)
-            diffs = diff_df[f"{var}_diff"]
-
-            # 증감 텍스트 생성
-            diff_texts = []
-            for d in diffs:
-                if pd.isna(d):
-                    diff_texts.append("")
-                elif d > 0:
-                    diff_texts.append(f"▲ +{d:.2f}")
-                elif d < 0:
-                    diff_texts.append(f"▼ {d:.2f}")
-                else:
-                    diff_texts.append("—")
-
-            fig.add_trace(go.Bar(
-                y=weekly_avg["주차"],
-                x=values,
-                orientation="h",
-                name=var,
-                text=[
-                    f"{v:.2f} ({t})" if t else f"{v:.2f}"
-                    for v, t in zip(values, diff_texts)
-                ],
-                texttemplate="%{text}",
-                textposition="inside",
-                hovertemplate=(
-                    f"{var}<br>"
-                    "주차: %{y}<br>"
-                    "평균: %{x:.2f}시간<br>"
-                    "전주 대비: %{customdata}"
-                    "<extra></extra>"
-                ),
-                customdata=[
-                    "—" if pd.isna(d) else f"{d:+.2f}시간"
-                    for d in diffs
-                ]
-            ))
-
 
         for var in selected_vars:
             fig.add_trace(go.Bar(
