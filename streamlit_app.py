@@ -72,9 +72,11 @@ PRESET_PERIODS = {
 def check_login(user_id, user_pw):
     try:
         df = pd.read_csv(ACCOUNTS_FILE, dtype=str)
-    except:
+    except Exception as e:
         st.warning(f"accounts.csv 읽기 실패: {e}")
-        return Nonedf[(df["id"] == user_id) & (df["password"] == user_pw)]
+        return None
+
+    row = df[(df["id"] == user_id) & (df["password"] == user_pw)]
     if row.empty:
         return None
     return row.iloc[0]
@@ -706,10 +708,10 @@ def student_page():
         if start_idx > end_idx:
             st.error("시작 주차는 끝 주차보다 클 수 없습니다.")
             return None
-            
+        
         # ------------------ 날짜 범위 계산 ------------------
-        start_date = pd.to_datetime(PRESET_PERIODS[start_week][0])
-        end_date = pd.to_datetime(PRESET_PERIODS[end_week][1])
+        start_date = pd.to_datetime(PRESET_PERIODS[start_week][0]).normalize()
+        end_date = pd.to_datetime(PRESET_PERIODS[end_week][1]).normalize() + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
 
         st.info(
             f"📌 선택 기간: **{start_week} ~ {end_week}**  \n"
@@ -770,6 +772,9 @@ def student_page():
             df_period.loc[mask, "주차번호"] = row["주차번호"]
             df_period.loc[mask, "주차"] = row["주차"]
 
+        start_week_num = int(start_week.split("주차")[0])
+        end_week_num = int(end_week.split("주차")[0])
+      
         df_period = df_period[
             (df_period["주차번호"] >= start_week) &
             (df_period["주차번호"] <= end_week)
