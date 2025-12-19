@@ -413,8 +413,8 @@ def student_page():
         csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
 
         try:
-            st.write("시도")
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
+            st.write("시도")
             # 컬럼 정규화
             st.write(df_csv.columns)
             df_csv.columns = (
