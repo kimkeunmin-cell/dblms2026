@@ -151,6 +151,7 @@ def make_student_weekly_summary(df_student):
         df = df.sort_values("주차번호")
 
     if len(df_student) < 2:
+        st.write(len(df_student))
         return  {
             "요약": "비교할 이전 주차 데이터가 부족합니다.",
             "경고": "",
