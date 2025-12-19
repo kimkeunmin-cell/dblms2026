@@ -263,7 +263,10 @@ def student_page():
                     "전체학생_전체과목_주간통계.csv",
                     "text/csv"
                 )
-    
+        if st.button("🔙 로그아웃"):
+            st.session_state.clear()
+            st.rerun()
+        return   # ← 이 줄이 핵심
     else:
         tab1, tab2, tab3 = st.tabs(
             ["📅 직접 기간 선택", "📊 주간별 리포트", "📈 주간 평균 변화"]
