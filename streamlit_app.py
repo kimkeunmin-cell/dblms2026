@@ -833,5 +833,3 @@ def app():
         login_page()
     else:
         student_page()
-
-app()
