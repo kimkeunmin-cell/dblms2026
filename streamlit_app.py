@@ -167,6 +167,36 @@ def student_page():
         with tabs[0]:
             st.subheader("🧑‍🏫 전체 학생 · 전체 과목 주간 통계 CSV")
             st.caption("모든 학생의 Google Sheet를 불러와 과목별 · 주차별 평균을 생성합니다.")
+            
+            st.markdown("### 🗓 주차 범위 선택")
+            week_keys = list(PRESET_PERIODS.keys())
+            col1, col2 = st.columns(2)
+
+            with col1:
+                admin_start_week = st.selectbox(
+                    "시작 주차",
+                    week_keys,
+                    index=0,
+                    key="admin_start_week"
+                )
+
+            with col2:
+                admin_end_week = st.selectbox(
+                    "끝 주차",
+                    week_keys,
+                    index=len(week_keys)-1,
+                    key="admin_end_week"
+                )
+
+            start_idx = week_keys.index(admin_start_week)
+            end_idx = week_keys.index(admin_end_week)
+
+            if start_idx > end_idx:
+                st.error("시작 주차는 끝 주차보다 클 수 없습니다.")
+
+            start_date = pd.to_datetime(PRESET_PERIODS[admin_start_week][0])
+            end_date = pd.to_datetime(PRESET_PERIODS[admin_end_week][1]) + pd.Timedelta(days=1)
+
 
             df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
             df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
@@ -216,6 +246,10 @@ def student_page():
 
                         df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
                         df = df.dropna(subset=["일시"])
+                        df = df[
+                            (df["일시"] >= start_date) &
+                            (df["일시"] < end_date)
+                        ]
 
                         # 주차 매핑
                         df["주차번호"] = np.nan
@@ -255,6 +289,22 @@ def student_page():
                     return
 
                 result_df = pd.concat(all_results, ignore_index=True)
+                result_df = pd.concat(all_results, ignore_index=True)
+
+                st.success("CSV 생성 완료!")
+
+                st.markdown("### 👀 CSV 미리보기 (상위 100행)")
+                st.dataframe(
+                    result_df.head(100),
+                    use_container_width=True
+                )
+
+                st.download_button(
+                    "⬇️ 전체 과목 주간 통계 CSV 다운로드",
+                    result_df.to_csv(index=False, encoding="utf-8"),
+                    "전체학생_전체과목_주간통계.csv",
+                    "text/csv"
+                )
 
                 st.success("CSV 생성 완료!")
                 st.download_button(
