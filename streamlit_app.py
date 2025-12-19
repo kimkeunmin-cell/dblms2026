@@ -711,7 +711,12 @@ def student_page():
         
         # ------------------ 날짜 범위 계산 ------------------
         start_date = pd.to_datetime(PRESET_PERIODS[start_week][0]).normalize()
-        end_date = pd.to_datetime(PRESET_PERIODS[end_week][1]).normalize() + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+        end_date = (
+            pd.to_datetime(PRESET_PERIODS[end_week][1])
+            .normalize()
+            + pd.Timedelta(days=1)
+            - pd.Timedelta(seconds=1)
+        )
 
         st.info(
             f"📌 선택 기간: **{start_week} ~ {end_week}**  \n"
@@ -762,7 +767,8 @@ def student_page():
 
         # ------------------ 날짜 → 주차 매핑 ------------------
         df_period["주차번호"] = None
-        df_period["주차"] = None
+        df_period["주차"] = ""
+        df_period["주차번호"] = df_period["주차번호"].astype("float")
 
         for _, row in df_weeks.iterrows():
             mask = (
@@ -776,8 +782,8 @@ def student_page():
         end_week_num = int(end_week.split("주차")[0])
       
         df_period = df_period[
-            (df_period["주차번호"] >= start_week) &
-            (df_period["주차번호"] <= end_week)
+            (df_period["주차번호"] >= start_week_num) &
+            (df_period["주차번호"] <= end_week_num)
         ]
 
         # 주차별 평균
