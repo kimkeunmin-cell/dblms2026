@@ -323,7 +323,6 @@ def student_page():
                                 sleep_sum += vv
 
                         row_data["수면합"] = round(sleep_sum, 2)
-                        st.write(row_data["수면합"])
                         row_data["공부총합"] = round(total_sum, 2)
                         all_results.append(row_data)
 
