@@ -208,7 +208,6 @@ def student_page():
             row = df_sheets[df_sheets["id"] == st.session_state["user_id"]]
             if row.empty:
                 st.warning("시트가 연결되지 않았습니다.")
-                return
             sheet_url = row.iloc[0]["sheet_url"]
         except:
             st.warning("시트 정보를 불러올 수 없습니다.")
