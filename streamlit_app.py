@@ -11,6 +11,7 @@ st.set_page_config(page_title="학습 관리 시스템", layout="centered")
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
 
+# 변수 정의
 GROUPS = {
     "수면": ["낮잠(시간)", "밤잠(시간)"],
     "종합": ["국어합(시간)", "수학합(시간)", "영어합(시간)", "탐구합(시간)"],
@@ -20,6 +21,7 @@ GROUPS = {
     "탐구": ["통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)"]
 }
 
+# 주간 리포트용 기간
 PRESET_PERIODS = {
     "1주차 (3/1~3/7)": ("2026-03-01", "2026-03-07"),
     "2주차 (3/8~3/14)": ("2026-03-08", "2026-03-14"),
@@ -32,9 +34,8 @@ def check_login(user_id, user_pw):
     try:
         df = pd.read_csv(ACCOUNTS_FILE, dtype=str)
     except:
-        return None
-
-    row = df[(df["id"] == user_id) & (df["password"] == user_pw)]
+        st.warning(f"accounts.csv 읽기 실패: {e}")
+        return Nonedf[(df["id"] == user_id) & (df["password"] == user_pw)]
     if row.empty:
         return None
     return row.iloc[0]
