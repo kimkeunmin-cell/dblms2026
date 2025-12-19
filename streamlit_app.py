@@ -722,7 +722,7 @@ def student_page():
             return None
 
         # 주차 생성
-        df["주차번호"] = df["일시"].dt.isocalendar().week
+        df["주차번호"] = df["일시"].dt.isocalendar().week.astype(int)
         df["주차"] = df["주차번호"].astype(str) + "주차"
 
         # ------------------ 기간 필터 ------------------
@@ -743,8 +743,7 @@ def student_page():
             .reset_index()
             .sort_values("주차")
         )
-  
-  
+    
         # 누적 막대 그래프
         fig = go.Figure()
 
