@@ -231,12 +231,10 @@ def student_page():
         for _, row in students_df.iterrows():
             user_id = row["id"]
             sheet_url = row.get("sheet_url", "")
-
-        sheet_url = row.get("sheet_url", "")
-        
-        if not isinstance(sheet_url, str) or "/d/" not in sheet_url:
-            st.warning(f"⚠ 시트 미연결 계정 건너뜀: {user_id}")
-            continue
+            
+            if not isinstance(sheet_url, str) or "/d/" not in sheet_url:
+                st.warning(f"⚠ 시트 미연결 계정 건너뜀: {user_id}")
+                continue
 
         sheet_id = sheet_url.split("/d/")[1].split("/")[0]
         csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv"
