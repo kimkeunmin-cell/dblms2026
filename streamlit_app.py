@@ -232,6 +232,8 @@ def student_page():
             user_id = row["id"]
             sheet_url = row.get("sheet_url", "")
 
+        sheet_url = row.get("sheet_url", "")
+        
         if not isinstance(sheet_url, str) or "/d/" not in sheet_url:
             st.warning(f"⚠ 시트 미연결 계정 건너뜀: {user_id}")
             continue
