@@ -212,7 +212,6 @@ def student_page():
             sheet_url = row.iloc[0]["sheet_url"]
         except:
             st.warning("시트 정보를 불러올 수 없습니다.")
-            return None
 
         if device == "PC":
             try:
@@ -249,7 +248,6 @@ def student_page():
             st.session_state["df_csv"] = df_csv
         except:
             st.warning("CSV 로드 실패")
-            return None
 
         # 날짜 범위 선택
         st.markdown("---")
@@ -259,7 +257,6 @@ def student_page():
             df_csv = df_csv.dropna(subset=["일시"])
         except:
             st.error("❌ '일시' 컬럼 날짜 변환 실패.")
-            return None
 
         min_date = df_csv["일시"].min().date()
         max_date = df_csv["일시"].max().date()
@@ -294,7 +291,6 @@ def student_page():
         
         if start_date > end_date:
             st.warning("⚠ 종료 날짜가 시작 날짜보다 빠를 수 없습니다.")
-            return None
 
         df_range = df_csv[
             (df_csv["일시"] >= pd.to_datetime(start_date)) &
@@ -329,7 +325,6 @@ def student_page():
     
         if not selected_vars:
             st.info("하나 이상의 변수를 선택해주세요.")
-            return None
 
         # ------------------ 누적 막대 그래프 ------------------
         st.markdown("---")
@@ -475,7 +470,6 @@ def student_page():
         st.subheader("주간별 리포트")
         if "df_csv" not in st.session_state:
             st.warning("📅 먼저 [직접 기간 선택] 탭에서 데이터를 불러주세요.")
-            return None
         df_csv = st.session_state["df_csv"]
 
         # --- State 초기화 ---
@@ -538,11 +532,9 @@ def student_page():
 
             if not selected_vars:
                 st.info("하나 이상의 변수를 선택해주세요.")
-                return None
 
             if df_range.empty:
                 st.warning("선택한 기간에 데이터가 없습니다.")
-                return None
          
             # ------------------ 누적 막대 그래프 ------------------
             st.markdown("---")
@@ -682,7 +674,6 @@ def student_page():
         st.subheader("주간별 평균 변화")
         if "df_csv" not in st.session_state:
             st.warning("📅 먼저 [직접 기간 선택] 탭에서 데이터를 불러주세요.")
-            return None
         
         df = st.session_state["df_csv"].copy()
         df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
@@ -714,7 +705,6 @@ def student_page():
     
         if start_idx > end_idx:
             st.error("시작 주차는 끝 주차보다 클 수 없습니다.")
-            return None
         
         # ------------------ 날짜 범위 계산 ------------------
         start_date = pd.to_datetime(PRESET_PERIODS[start_week][0]).normalize()
@@ -738,7 +728,6 @@ def student_page():
 
         if df_period.empty:
             st.warning("선택한 기간에 데이터가 없습니다.")
-            return None
        
         # 그룹 & 변수 선택
         selected_group = st.selectbox(
@@ -756,7 +745,6 @@ def student_page():
 
         if not selected_vars:
             st.info("하나 이상의 변수를 선택해주세요.")
-            return None
         
         # ------------------ 주차 기준 테이블 생성 ------------------
         week_rows = []
@@ -839,7 +827,6 @@ def student_page():
 
     # ---------------- TAB 3 ----------------
     with tab_admin:
-        st.write("됐나?")
         st.subheader("🧑‍🏫 전체 학생 · 전체 과목 주간 통계 CSV")
 
         st.caption("모든 학생의 Google Sheet를 불러와 과목별 · 주차별 평균을 생성합니다.")
