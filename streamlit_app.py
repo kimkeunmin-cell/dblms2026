@@ -161,8 +161,8 @@ def student_page():
     st.title(f"학생 페이지 - {st.session_state['user_id']}")
 
     if st.session_state["role"] == "admin":
-        tab_admin = st.tabs(
-            ["🧑‍🏫 관리자"]
+        tab1, tab2, tab3, tab_admin = st.tabs(
+            ["📅 직접 기간 선택", "📊 주간별 리포트", "📈 주간 평균 변화", "🧑‍🏫 관리자"]
         )
     else:
         tab1, tab2, tab3 = st.tabs(
