@@ -79,9 +79,9 @@ PRESET_PERIODS = {
     "43주차 (12/20~12/26)": ("2026-12-20", "2026-12-26"),
     "44주차 (12/27~12/31)": ("2026-12-27", "2026-12-31")}
 
-def dataframe_to_xlsx_bytes(df, sheet_name="Sheet1"):
+def dataframe_to_xlsx_bytes(df, sheet_name="통계"):
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
         df.to_excel(
             writer,
             index=False,
