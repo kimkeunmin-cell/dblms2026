@@ -277,7 +277,7 @@ def student_page():
                                     df[v] = np.nan
 
                             weekly_avg = (
-                                df.groupby(["주차번호", "주차"])[valid]
+                                df.groupby(["주차번호", "주차"])[vars_]
                                 .mean()
                                 .reset_index()
                             )
