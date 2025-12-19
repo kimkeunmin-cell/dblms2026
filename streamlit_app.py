@@ -744,16 +744,44 @@ def student_page():
             st.info("하나 이상의 변수를 선택해주세요.")
             return None
         
-        # ------------------ 주차 컬럼 생성 ------------------
-        df_period["주차"] = df_period["일시"].dt.to_period("W-SUN").astype(str)
+        # ------------------ 주차 기준 테이블 생성 ------------------
+        week_rows = []
+
+        for week_name, (start, end) in PRESET_PERIODS.items():
+            week_num = int(week_name.split("주차")[0])
+            week_rows.append({
+                "주차번호": week_num,
+                "주차": week_name,
+                "start": pd.to_datetime(start),
+                "end": pd.to_datetime(end)
+            })
+
+        df_weeks = pd.DataFrame(week_rows)
+
+        # ------------------ 날짜 → 주차 매핑 ------------------
+        df_period["주차번호"] = None
+        df_period["주차"] = None
+
+        for _, row in df_weeks.iterrows():
+            mask = (
+                (df_period["일시"] >= row["start"]) &
+                (df_period["일시"] <= row["end"])
+            )
+            df_period.loc[mask, "주차번호"] = row["주차번호"]
+            df_period.loc[mask, "주차"] = row["주차"]
+
+        df_period = df_period[
+            (df_period["주차번호"] >= start_week) &
+            (df_period["주차번호"] <= end_week)
+        ]
 
         # 주차별 평균
         weekly_avg = (
             df_period
-            .groupby("주차")[selected_vars]
+            .groupby(["주차번호", "주차"])[selected_vars]
             .mean()
             .reset_index()
-            .sort_values("주차")
+            .sort_values("주차번호")
         )
     
         # 누적 막대 그래프
