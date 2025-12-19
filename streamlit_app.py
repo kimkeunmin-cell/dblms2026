@@ -202,6 +202,9 @@ def student_page():
             df_sheets = pd.read_csv(SHEETS_FILE, dtype=str)
 
             students_df = df_accounts[df_accounts["role"] == "student"]
+            st.write("학생 수:", len(students_df))
+            st.write("시트 연결된 학생 수:", len(df_sheets))
+            st.write("📋 시트 연결 ID 목록:", df_sheets["id"].tolist())
 
             if students_df.empty:
                 st.warning("학생 계정이 없습니다.")
@@ -264,9 +267,10 @@ def student_page():
 
                         # GROUPS 전체
                         for group_name, vars_ in GROUPS.items():
-                            valid = [v for v in vars_ if v in df.columns]
-                            if not valid:
-                                continue
+                            valid = vars_
+                            for v in valid:
+                                if v not in df.columns:
+                                    df[v] = np.nan
 
                             weekly_avg = (
                                 df.groupby(["주차번호", "주차"])[valid]
@@ -310,9 +314,11 @@ def student_page():
                 st.download_button(
                     "⬇️ 전체 과목 주간 통계 CSV 다운로드",
                     result_df.to_csv(index=False, encoding="utf-8-sig"),
-                    "전체학생_전체과목_주간통계.csv",
-                    "text/csv"
+                    file_name="전체학생_전체과목_주간통계.csv",
+                    mime="text/csv",
+                    key="admin_weekly_csv_download"
                 )
+
         if st.button("🔙 로그아웃"):
             st.session_state.clear()
             st.rerun()
