@@ -333,7 +333,7 @@ def student_page():
         
                 result_df = pd.DataFrame(all_results)
 
-                final_cols = ["학생ID"] + ALL_VARS + ["공부총합"]
+                final_cols = ["학생ID"] + +ALL_VARS + ["공부총합", "수면합"]
                 result_df = result_df[final_cols]
 
                 st.success("CSV 생성 완료!")
