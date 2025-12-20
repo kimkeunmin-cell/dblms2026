@@ -142,16 +142,16 @@ def make_student_weekly_summary(df_student, student_goals):
         diff = avg - goal
         if var == "수면합":
             if diff < -1:
-                summary.append(f"⚠️ 평균 수면시간이 목표보다 부족합니다 ({avg:.1f}h vs {goal}h).")
+                summary.append(f"⚠️ 평균 수면시간이 목표보다 부족합니다 ({avg:.1f}시간 vs {goal}시간}.")
             elif diff > 1:
-                summary.append(f"⚠️ 평균 수면시간이 목표보다 많습니다 ({avg:.1f}h vs {goal}h).")
+                summary.append(f"⚠️ 평균 수면시간이 목표보다 많습니다 ({avg:.1f}시간 vs {goal}시간}.")
             else:
-                summary.append(f"💤 수면량이 목표에 잘 맞습니다 ({avg:.1f}h).")
+                summary.append(f"💤 수면량이 목표에 잘 맞습니다 ({avg:.1f}시간}.")
         elif var == "공부총합":
             if diff < -1:
-                summary.append(f"⚠️ 평균 공부시간이 목표보다 부족합니다 ({avg:.1f}h vs {goal}h).")
+                summary.append(f"⚠️ 평균 공부시간이 목표보다 부족합니다 ({avg:.1f}시간 vs {goal}시간}.")
             else:
-                summary.append(f"📚 공부량이 목표에 잘 맞습니다 ({avg:.1f}h).")
+                summary.append(f"📚 공부량이 목표에 잘 맞습니다 ({avg:.1f}시간}.")
 
     return summary
 
@@ -359,7 +359,6 @@ def student_page():
                             continue
 
                         # 목표 추출
-                        st.write(df.head(2))
                         goals = {}
                         for var in ALL_VARS:
                             goals[var] = float(df.get(var, [0])[0])
