@@ -96,25 +96,6 @@ def dataframe_to_xlsx_bytes(df, sheet_name="통계"):
     output.seek(0)
     return output
 
-# 경고 또는 응원 문장
-def make_warning_sentence(curr):
-    warnings = []
-
-    if curr["공부총합"] < MIN_STUDY_HOURS:
-        warnings.append(
-            f"공부 시간이 권장 기준({MIN_STUDY_HOURS}시간)에 미치지 못했습니다."
-        )
-
-    if curr["수면합"] < MIN_SLEEP_HOURS:
-        warnings.append(
-            f"수면 시간이 부족한 편입니다(권장 {MIN_SLEEP_HOURS}시간 이상)."
-        )
-
-    if not warnings:
-        return "학습 시간과 수면 시간이 모두 안정적으로 유지되고 있습니다."
-
-    return " ".join(warnings)
-
 # 교사용 코멘트 (여러 가지 경우의 수 만들어야 함) #######################################################################################
 def make_teacher_comment_soft(curr, prev):
     study_diff = curr["공부총합"] - prev["공부총합"]
@@ -143,52 +124,36 @@ def make_teacher_comment_soft(curr, prev):
 # 교사용 코멘트 (여러 가지 경우의 수 만들어야 함) #######################################################################################
 
 # 주간 리포트 요약
-def make_student_weekly_summary(df_student):
-    df = df_student.copy()
+def make_student_weekly_summary(df_student, student_goals):
+    if df_student.empty:
+        return "선택 주차에 데이터가 없습니다."
 
-    # ✅ 주차번호가 있으면 정렬, 없으면 그대로
-    if "주차번호" in df.columns:
-        df = df.sort_values("주차번호")
+    df_student["수면합"] = df_student.get("낮잠(시간)",0) + df_student.get("밤잠(시간)",0)
+    df_student["공부총합"] = df_student.get("국어합(시간)",0) + df_student.get("수학합(시간)",0) + \
+                              df_student.get("영어합(시간)",0) + df_student.get("탐구합(시간)",0)
 
-    if len(df_student) < 2:
-        st.write(len(df_student))
-        return  {
-            "요약": "비교할 이전 주차 데이터가 부족합니다.",
-            "경고": "",
-            "교사코멘트": ""
-        }
-    prev = df_student.iloc[-2]
-    curr = df_student.iloc[-1]
+    avg_dict = {var: df_student[var].mean() for var in ["수면합","공부총합"]}
+    summary = []
 
-    # ---------------- 증감 계산 ----------------
-    study_diff = curr["공부총합"] - prev["공부총합"]
-    sleep_diff = curr["수면합"] - prev["수면합"]
+    for var, avg in avg_dict.items():
+        goal = student_goals.get(var)
+        if goal is None:
+            continue
+        diff = avg - goal
+        if var == "수면합":
+            if diff < -1:
+                summary.append(f"⚠️ 평균 수면시간이 목표보다 부족합니다 ({avg:.1f}h vs {goal}h).")
+            elif diff > 1:
+                summary.append(f"⚠️ 평균 수면시간이 목표보다 많습니다 ({avg:.1f}h vs {goal}h).")
+            else:
+                summary.append(f"💤 수면량이 목표에 잘 맞습니다 ({avg:.1f}h).")
+        elif var == "공부총합":
+            if diff < -1:
+                summary.append(f"⚠️ 평균 공부시간이 목표보다 부족합니다 ({avg:.1f}h vs {goal}h).")
+            else:
+                summary.append(f"📚 공부량이 목표에 잘 맞습니다 ({avg:.1f}h).")
 
-    study_trend = "증가" if study_diff > 0 else "감소" if study_diff < 0 else "유지"
-    sleep_trend = "증가" if sleep_diff > 0 else "감소" if sleep_diff < 0 else "유지"
-
-    # ---------------- 가장 많이 공부한 과목 ----------------
-    subjects = ["국어합(시간)", "수학합(시간)", "영어합(시간)", "탐구합(시간)"]
-    best_subject = curr[subjects].idxmax().replace("(시간)", "")
-    worst_subject = curr[subjects].idxmin().replace("(시간)", "")
-
-    # ---------------- 문장 생성 ----------------
-    summary = (
-        f"최소 권장 평균 공부시간과 수면시간은 6.5시간입니다. "
-        f"{curr['주차']} 기준 평균 공부시간은 "
-        f"{curr['공부총합']:.1f}시간으로 전주 대비 "
-        f"{study_diff:+.1f}시간 {study_trend}했으며, "
-        f"수면합은 {sleep_diff:+.1f}시간 {sleep_trend}했습니다. "
-        f"가장 많이 공부한 과목은 {best_subject}이고, "
-        f"가장 적게 공부한 과목은 {worst_subject}입니다."
-    )
-
-    return {
-        "요약": summary,
-        "경고": make_warning_sentence(curr),
-        "교사코멘트": make_teacher_comment_soft(curr, prev)
-    }
-
+    return summary
 
 # ================== 로그인 ==================
 def check_login(user_id, user_pw):
@@ -393,6 +358,11 @@ def student_page():
                         if "일시" not in df.columns:
                             continue
 
+                        # 목표 추출
+                        goals = {}
+                        for var in ALL_VARS:
+                            goals[var] = float(df.get(var, [0])[0])
+                        
                         df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
                         df = df.dropna(subset=["일시"])
                         df = df[(df["일시"] >= start_date) & (df["일시"] <= end_date)]
@@ -429,7 +399,7 @@ def student_page():
                 # -------------------------------
                 # 결과 처리
                 # -------------------------------
-                if not all_results:
+                 if not all_results:
                     st.warning("생성된 데이터가 없습니다.")
         
                 result_df = pd.DataFrame(all_results)
@@ -440,18 +410,20 @@ def student_page():
                               "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "공부총합"]
                 result_df = result_df[final_cols]
 
+                # 학생
                 summary_rows = []
 
                 for student_id, df_s in result_df.groupby("학생ID"):
                     summary_rows.append({
                         "학생ID": student_id,
-                        "요약": make_student_weekly_summary(df_s)
+                        "요약": make_student_weekly_summary(df, goals)
                     })
 
                 summary_df = pd.DataFrame(summary_rows)
 
                 result_df = result_df.merge(summary_df, on="학생ID", how="left")
 
+         
                 st.success("CSV 생성 완료!")
                 st.markdown("### 👀 CSV 미리보기 (상위 100행)")
                 st.dataframe(
