@@ -965,7 +965,7 @@ def student_page():
 
         st.markdown("### 📝 이번 주 학습 요약")
 
-        summary = make_student_weekly_summary(df_weekly)
+        summary = make_student_weekly_summary(df_display, goal_num)
         st.success(summary)
 
     # ---------------- TAB 3 ----------------
