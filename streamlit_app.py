@@ -446,7 +446,7 @@ def student_page():
                 st.markdown("### 📝 학생별 자동 요약")
 
                 for student_id, df_s in result_df.groupby("학생ID"):
-                    summary = make_student_weekly_summary(df_s)
+                    summary = make_student_weekly_summary(df, goals)
                     st.info(f"👤 {student_id} : {summary}")
 
         
