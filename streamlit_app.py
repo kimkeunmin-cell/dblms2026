@@ -363,8 +363,8 @@ def student_page():
                         goals = {}
                         for var in ALL_VARS:
                             goals[var] = float(df.get(var, [0])[0])
+                        goals["수면합"]=float(df.get("수면(시간)", [0])[0])  
                         goals["공부총합"]=float(df.get("전체합(시간)", [0])[0])
-                        st.write(goals)
                         
                         df["일시"] = pd.to_datetime(df["일시"], errors="coerce")
                         df = df.dropna(subset=["일시"])
