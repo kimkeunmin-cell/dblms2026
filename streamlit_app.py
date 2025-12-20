@@ -539,6 +539,11 @@ def student_page():
             df_csv["일시"] = pd.to_datetime(df_csv["일시"], errors="coerce")
             df_csv = df_csv.dropna(subset=["일시"])
             st.session_state["df_csv"] = df_csv
+            goals = {}
+            for var in ALL_VARS:
+                goals[var] = float(df_csv.get(var, [0])[0])
+                goals["수면합"]=float(df_csv.get("수면(시간)", [0])[0])  
+                goals["공부총합"]=float(df_csv.get("전체합(시간)", [0])[0])
         except:
             st.warning("CSV 로드 실패")
 
@@ -965,7 +970,7 @@ def student_page():
 
         st.markdown("### 📝 이번 주 학습 요약")
 
-        summary = make_student_weekly_summary(df_display, goal_num)
+        summary = make_student_weekly_summary(df_display, goals)
         st.success(summary)
 
     # ---------------- TAB 3 ----------------
