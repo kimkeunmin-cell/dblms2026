@@ -359,6 +359,7 @@ def student_page():
                             continue
 
                         # 목표 추출
+                        st.write(df.head(2))
                         goals = {}
                         for var in ALL_VARS:
                             goals[var] = float(df.get(var, [0])[0])
