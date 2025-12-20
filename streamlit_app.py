@@ -399,7 +399,7 @@ def student_page():
                 # -------------------------------
                 # 결과 처리
                 # -------------------------------
-                 if not all_results:
+                if not all_results:
                     st.warning("생성된 데이터가 없습니다.")
         
                 result_df = pd.DataFrame(all_results)
