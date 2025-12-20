@@ -362,7 +362,7 @@ def student_page():
                         st.write(df.head(2))
                         goals = {}
                         for var in ALL_VARS:
-                            st.write(float(df.get(var, [0]))
+                            st.write(float(df.get(var, [0])))
                             goals[var] = float(df.get(var, [0])[0])
                             st.write(goals)
                         
