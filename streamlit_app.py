@@ -1022,8 +1022,8 @@ def student_page():
         )
 
         st.info(
-            f"📌 선택 기간: **{start_week} ~ {end_week}**  \n"
-            f"({start_date.date()} ~ {end_date.date()})"
+            # f"📌 선택 기간: **{start_week} ~ {end_week}**  \n"
+            f"📌 선택 기간: ({start_date.date()} ~ {end_date.date()})"
         )
 
         # ------------------ 데이터 필터 ------------------
