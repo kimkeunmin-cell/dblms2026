@@ -972,6 +972,8 @@ def student_page():
 
         summary = make_student_weekly_summary(df_display, goals)
         st.success(summary)
+        st.success(summary[0])
+        st.success(summary[1])
         st.write(summary)
 
     # ---------------- TAB 3 ----------------
