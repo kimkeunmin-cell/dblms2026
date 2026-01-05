@@ -188,7 +188,6 @@ def login_page():
 
 # ================== 학생 페이지 ==================
 def student_page():
-    student_study_summary = [] 
     current_user_id = st.session_state["user_id"]
 
     df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
@@ -422,30 +421,6 @@ def student_page():
                               "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
                               "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "공부총합"]
                 result_df = result_df[final_cols]
-
-                # 학생별 주간 평균 공부량
-                df_study_rank = (
-                    result_df
-                    .groupby("학생ID", as_index=False)["공부총합"]
-                    .mean()
-                    .rename(columns={"공부총합": "주간평균공부시간"})
-                )
-
-                # account.csv에서 name 붙이기
-                df_study_rank = df_study_rank.merge(
-                    df_accounts[["id", "name"]],
-                    left_on="학생ID",
-                    right_on="id",
-                    how="left"
-                )
-
-                df_study_rank = (
-                    df_study_rank
-                    .sort_values("주간평균공부시간", ascending=False)
-                    .reset_index(drop=True)
-                )
-
-                df_study_rank["순위"] = df_study_rank.index + 1
 
                 # 학생
                 summary_rows = []
@@ -1008,27 +983,6 @@ def student_page():
         summary = make_student_weekly_summary(df_display, goals)
         st.success(summary[0])
         st.success(summary[1])
-
-        st.divider()
-        st.subheader("📊 이번 기간 공부량 순위")
-
-        st.caption("※ 익명만 표시됩니다.")
-        st.dataframe(
-            df_study_rank[["순위", "name", "주간평균공부시간"]],
-            use_container_width=True
-        )
-        my_id = st.session_state.get("user_id")
-        my_row = df_study_rank[df_study_rank["학생ID"] == my_id]
-
-        if not my_row.empty:
-            my_rank = int(my_row["순위"].iloc[0])
-            my_avg = round(my_row["주간평균공부시간"].iloc[0], 2)
-            total_students = len(df_study_rank)
-
-            st.success(
-                f"🙋‍♂️ 당신의 순위는 **{total_students}명 중 {my_rank}위**입니다.\n\n"
-                f"📚 주간 평균 공부 시간: **{my_avg}시간**"
-            )
 
         # ---------------- TAB 3 ----------------
     with tab3:
