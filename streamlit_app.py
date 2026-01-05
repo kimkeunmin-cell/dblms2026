@@ -197,7 +197,7 @@ def student_page():
     student_name = row.iloc[0]["name"] if not row.empty else "이름없음"
     
     # st.title("학생 페이지")
-    st.title(f" 👤 {student_name} · ID: {current_user_id}")
+    st.title(f" 익명 : {student_name} · 학번 : {current_user_id}")
     # st.caption(f"👤 {student_name} · ID: {current_user_id}")
     
     st.markdown("""
