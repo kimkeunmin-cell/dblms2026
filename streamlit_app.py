@@ -1233,7 +1233,7 @@ def student_page():
             st.dataframe(
                 show_df
                 .style
-                .apply(lambda row: highlight_my_row(my_row, my_id), axis=1),
+                .apply(lambda my_row: highlight_my_row(my_row, my_id), axis=1),
                 use_container_width=True,
                 hide_index=True
             )
