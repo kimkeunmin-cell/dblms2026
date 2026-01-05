@@ -258,7 +258,7 @@ def student_page():
         student_name = current_user_id  # fallback
         
     st.title("학생 페이지")
-    # st.caption(f"👤 {student_name} · ID: {current_user_id}")
+    st.caption(f"👤 {student_name} · ID: {current_user_id}")
 
     # ===================== ADMIN =====================
     if st.session_state["role"] == "admin":
