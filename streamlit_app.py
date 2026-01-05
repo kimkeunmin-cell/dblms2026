@@ -919,7 +919,7 @@ def student_page():
                     goal_text = f"{g:.2f}"
                     goal_hover_text = f"({var}) 목표: {g:.2f}시간"
 
- # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
+                 # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
                 if pd.isna(g) or g == 0:
                     pct_part = ""  # 퍼센트 표시 없음
                     colors_dynamic.append("#9e9e9e")  # gray for undefined target
@@ -954,7 +954,7 @@ def student_page():
             fig2.add_trace(go.Bar(
                 x=selected_vars,
                 y=[float(x) if not pd.isna(x) else 0 for x in avg_num.values],   
-                name="평균",
+                name="실천",
                 marker_color=colors_dynamic,
                 text=avg_texts,
                 texttemplate='%{text}',
