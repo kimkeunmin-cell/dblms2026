@@ -181,7 +181,8 @@ def login_page():
         if user is not None:
             st.session_state["logged_in"] = True
             st.session_state["user_id"] = user_id
-            st.seesion_state["user_name"] = user[1]
+            st.write(user)
+            # st.seesion_state["user_name"] = user[1]
             st.session_state["role"] = user.get("role", "student")
             st.rerun()
         else:
