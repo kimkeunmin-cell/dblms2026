@@ -434,7 +434,7 @@ def student_page():
                 df_sorted['순위'] = df_sorted.index + 1
 
                 # 결과 출력
-                result_df = result_df.sort_values(by="학생ID")
+                result_df = df_sorted.sort_values(by="학생ID")
                 
                 # 학생
                 summary_rows = []
