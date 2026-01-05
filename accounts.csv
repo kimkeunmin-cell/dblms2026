@@ -1,7 +1,8 @@
-id,password,role
-admin,000,admin
-30635,111,student
-30636,222,student
-30730,aaa,student
+id,name,password,role
+admin,admin,000,admin
+30635,w1_001,111,student
+30636,w1_002,222,student
+30730,w2_001,aaa,student
+
 
 
