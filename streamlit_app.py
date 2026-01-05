@@ -1221,22 +1221,22 @@ def student_page():
         # ===============================
         # 표시용 테이블
         # ===============================
-            show_df = df[["순위", "익명", "공부총합", "변화"]]
+            show_df = df[["학생ID","순위", "익명", "공부총합", "변화"]].copy()
             show_df = show_df.sort_values(["순위", "익명"], ascending=[True, True])
 
         # ===============================
         # (1) 내 순위 강조
         # ===============================
-            df["학생ID"]=df["학생ID"].astype(str).str.strip()
+            show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
             my_id = st.session_state.get("user_id").strip()
             my_row = df.loc[df["학생ID"] == my_id]
             styled_df = (
                 show_df
                 .style
-                .apply(lambda my_row: highlight_my_row(my_row, my_id), axis=1)
+                .apply(lambda row: highlight_my_row(row, my_id), axis=1)
             )
             st.dataframe(
-                styled_df,
+                styled_df.hide(axis="columns", subset=["학생ID"]),
                 use_container_width=True,
                 hide_index=True
             )
