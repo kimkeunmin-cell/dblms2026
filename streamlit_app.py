@@ -11,7 +11,7 @@ st.set_page_config(page_title="학습 관리 시스템", layout="centered")
 
 # ================== GitHub 주간 순위 ==================
 BASE_GITHUB_URL = (
-    "https://raw.githubusercontent.com/깃허브ID/레포명/main/weekly_rank"
+    "https://raw.githubusercontent.com/kimkeunmin-cell/dblms2026/main/weekly_rank"
 )
 
 ACCOUNTS_FILE = "accounts.csv"
