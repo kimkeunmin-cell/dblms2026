@@ -677,9 +677,9 @@ def student_page():
 
         st.plotly_chart(fig, use_container_width=True)
 
-        # ------------------ 목표 대비 평균 그래프 ------------------
+        # ------------------ 목표 대비 실천 그래프 ------------------
         st.markdown("---")
-        st.subheader("🎯 목표 대비 평균 비교")
+        st.subheader("🎯 목표 대비 실천 비교")
 
         # --- 안전한 수치 변환 (문자열/빈값 대비) ---
         goal_raw = df_csv[selected_vars].iloc[0]  # 원래 코드
@@ -700,10 +700,10 @@ def student_page():
             # 평균 텍스트 (항상 표시)
             if pd.isna(a):
                 avg_text = ""
-                avg_hover_text = f"({var}) 평균: -"
+                avg_hover_text = f"({var}) 실천: -"
             else:
                 avg_text = f"{a:.2f}"
-                avg_hover_text = f"({var}) 평균: {a:.2f}시간"
+                avg_hover_text = f"({var}) 실천: {a:.2f}시간"
 
             # 목표 텍스트
             if pd.isna(g):
@@ -749,7 +749,7 @@ def student_page():
         fig2.add_trace(go.Bar(
             x=selected_vars,
             y=[float(x) if not pd.isna(x) else 0 for x in avg_num.values],   
-            name="평균",
+            name="실천",
             marker_color=colors_dynamic,
             text=avg_texts,
             texttemplate='%{text}',
@@ -886,9 +886,9 @@ def student_page():
                 )
                 fig.update_traces(textfont_size=14)
             st.plotly_chart(fig, use_container_width=True, key="fig_week_chart")
-            # ------------------ 목표 대비 평균 그래프 ------------------
+            # ------------------ 목표 대비 실천 그래프 ------------------
             st.markdown("---")
-            st.subheader("🎯 목표 대비 평균 비교")
+            st.subheader("🎯 목표 대비 실천 비교")
     
             # --- 안전한 수치 변환 (문자열/빈값 대비) ---
             goal_raw = df_csv[selected_vars].iloc[0]  # 원래 코드
@@ -907,10 +907,10 @@ def student_page():
                 # 평균 텍스트 (항상 표시)
                 if pd.isna(a):
                     avg_text = ""
-                    avg_hover_text = f"({var}) 평균: -"
+                    avg_hover_text = f"({var}) 실천: -"
                 else:
                     avg_text = f"{a:.2f}"
-                    avg_hover_text = f"({var}) 평균: {a:.2f}시간"
+                    avg_hover_text = f"({var}) 실천: {a:.2f}시간"
                 # 목표 텍스트
                 if pd.isna(g):
                     goal_text = ""
@@ -919,7 +919,7 @@ def student_page():
                     goal_text = f"{g:.2f}"
                     goal_hover_text = f"({var}) 목표: {g:.2f}시간"
 
-                # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
+ # 목표가 0 또는 NaN이면 퍼센트 표시 안함, 색은 중립(회색)
                 if pd.isna(g) or g == 0:
                     pct_part = ""  # 퍼센트 표시 없음
                     colors_dynamic.append("#9e9e9e")  # gray for undefined target
