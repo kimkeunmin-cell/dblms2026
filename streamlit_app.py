@@ -315,7 +315,6 @@ def student_page():
                 with st.spinner("학생 데이터 처리 중..."):
                     # 주차 테이블
                     week_rows = []
-                    week_rows = []
                     for i in range(start_idx, end_idx + 1):
                         w = week_keys[i]
                         s, e = PRESET_PERIODS[w]
@@ -340,6 +339,7 @@ def student_page():
                     for _, acc in students_df.iterrows():
                         user_id = acc["id"]
                         student_name = acc["name"]
+                        real_name = acc["real"]
                         
                         row_sheet = df_sheets[df_sheets["id"] == user_id]
                         if row_sheet.empty:
@@ -388,7 +388,7 @@ def student_page():
 
                         means = df[ALL_VARS].mean()
                
-                        row_data = {"학생ID": user_id}
+                        row_data = {"학생ID": user_id, "익명": student_name, "실명":real_name}
 
                         for v in ALL_VARS:
                             row_data[v] = round(means.get(v, np.nan), 2)
@@ -416,7 +416,7 @@ def student_page():
                     st.warning("생성된 데이터가 없습니다.")
         
                 result_df = pd.DataFrame(all_results)
-                final_cols = ["학생ID", "낮잠(시간)", "밤잠(시간)", "수면합", 
+                final_cols = ["학생ID", "익명", "실명", "낮잠(시간)", "밤잠(시간)", "수면합", 
                               "문학(시간)", "비문학(시간)", "화언(시간)", "국어기타(시간)", "국어합(시간)",
                               "대수(시간)", "미적(시간)", "확통(시간)", "수학기타(시간)", "수학합(시간)",
                               "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
