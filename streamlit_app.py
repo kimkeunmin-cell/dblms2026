@@ -189,8 +189,6 @@ def login_page():
 # ================== 학생 페이지 ==================
 def student_page():
     student_study_summary = [] 
-    st.error("🔥 NEW STUDENT PAGE LOADED")
-    st.stop()
     current_user_id = st.session_state["user_id"]
 
     df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
