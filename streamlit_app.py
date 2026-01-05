@@ -196,8 +196,9 @@ def student_page():
     row = df_accounts[df_accounts["id"] == current_user_id]
     student_name = row.iloc[0]["name"] if not row.empty else "이름없음"
     
-    st.title("학생 페이지")
-    st.caption(f"👤 {student_name} · ID: {current_user_id}")
+    # st.title("학생 페이지")
+    st.title(f"학생 페이지 - 👤 {student_name} · ID: {current_user_id}")
+    # st.caption(f"👤 {student_name} · ID: {current_user_id}")
     
     st.markdown("""
         <style>
