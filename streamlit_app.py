@@ -428,14 +428,8 @@ def student_page():
                               "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "공부총합"]
                 result_df = result_df[final_cols]
 
-                df_sorted = result_df.sort_values(by="공부총합")
-
-                # 정렬된 인덱스를 활용해 순위 계산
-                df_sorted['순위'] = df_sorted.index + 1
-
-                # 결과 출력
-                result_df = df_sorted.sort_values(by="학생ID")
-                
+                result_df["순위"] = result_df["공부총합"].rank(method='first', ascending=False)
+ 
                 # 학생
                 summary_rows = []
 
