@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,6 +5,10 @@ import plotly.graph_objects as go
 import datetime
 import plotly.express as px
 import io
+import os
+
+st.error("🔥 이 파일이 실행 중입니다")
+st.error(f"🔥 실행 파일 경로: {os.path.abspath(__file__)}")
 
 # ================== 기본 설정 ==================
 st.set_page_config(page_title="학습 관리 시스템", layout="centered")
