@@ -1230,10 +1230,13 @@ def student_page():
             df["학생ID"]=df["학생ID"].astype(str).str.strip()
             my_id = st.session_state.get("user_id").strip()
             my_row = df.loc[df["학생ID"] == my_id]
-            st.dataframe(
+            styled_df = (
                 show_df
                 .style
-                .apply(lambda my_row: highlight_my_row(my_row, my_id), axis=1),
+                .apply(lambda my_row: highlight_my_row(my_row, my_id), axis=1)
+            )
+            st.dataframe(
+                styled_df,
                 use_container_width=True,
                 hide_index=True
             )
