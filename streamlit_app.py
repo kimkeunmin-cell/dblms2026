@@ -1169,13 +1169,13 @@ def student_page():
 
         file_name = week_options[selected_week]
         file_url = f"{BASE_GITHUB_URL}/{file_name}"
-
+        st.write(file_url)
         try:
         # ===============================
         # 파일 로드
         # ===============================
             df = pd.read_excel(file_url)
-
+            
             if df.empty:
                 raise ValueError
         # ===============================
