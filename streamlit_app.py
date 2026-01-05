@@ -101,6 +101,13 @@ def dataframe_to_xlsx_bytes(df, sheet_name="통계"):
     output.seek(0)
     return output
 
+# 순위 강조용 
+def highlight_my_row(row, my_id):
+    if str(row["학생ID"]).strip() == str(my_id).strip():
+        return ["background-color: #fff3cd; font-weight: bold"] * len(row)
+    else:
+        return [""] * len(row)
+
 # 교사용 코멘트 (여러 가지 경우의 수 만들어야 함) #######################################################################################
 def make_teacher_comment_soft(curr, prev):
     study_diff = curr["공부총합"] - prev["공부총합"]
@@ -1216,11 +1223,6 @@ def student_page():
         # ===============================
             show_df = df[["순위", "익명", "공부총합", "변화"]]
             show_df = show_df.sort_values(["순위", "익명"], ascending=[True, True])
-            st.dataframe(
-                show_df,
-                use_container_width=True,
-                hide_index=True
-            )
 
         # ===============================
         # (1) 내 순위 강조
@@ -1228,7 +1230,13 @@ def student_page():
             df["학생ID"]=df["학생ID"].astype(str).str.strip()
             my_id = st.session_state.get("user_id").strip()
             my_row = df.loc[df["학생ID"] == my_id]
-
+            st.dataframe(
+                show_df
+                .style
+                .apply(lambda row: highlight_my_row(my_row, my_id), axis=1),
+                use_container_width=True,
+                hide_index=True
+            )
             if not my_row.empty:
                 r = int(my_row["순위"].iloc[0])
                 avg = round(my_row["공부총합"].iloc[0], 2)
