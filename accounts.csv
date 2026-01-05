@@ -1,8 +1,9 @@
-id,name,password,role
-admin,admin,000,admin
-30635,w1_001,111,student
-30636,w1_002,222,student
-30730,w2_001,aaa,student
+id,name,real,password,role
+admin,admin,관리자,000,admin
+30635,w1_001,김건민,111,student
+30636,w1_002,안주빈,222,student
+30730,w2_001,홍연수,aaa,student
+
 
 
 
