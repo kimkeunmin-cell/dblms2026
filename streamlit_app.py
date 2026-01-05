@@ -1169,7 +1169,7 @@ def student_page():
 
         file_name = week_options[selected_week]
         file_url = f"{BASE_GITHUB_URL}/{file_name}"
-        st.write(file_url)
+
         try:
         # ===============================
         # 파일 로드
@@ -1215,7 +1215,7 @@ def student_page():
         # 표시용 테이블
         # ===============================
             show_df = df[["순위", "익명", "공부총합", "변화"]]
-
+            show_df = show_df.sort_values(["순위", "익명"], ascending=[True, True])
             st.dataframe(
                 show_df,
                 use_container_width=True,
@@ -1225,8 +1225,9 @@ def student_page():
         # ===============================
         # (1) 내 순위 강조
         # ===============================
-            my_id = st.session_state.get("user_id")
-            my_row = df[df["학생ID"] == my_id]
+            df["학생ID"]=df["학생ID"].astype(str).str.strip()
+            my_id = st.session_state.get("user_id").strip()
+            my_row = df.loc[df["학생ID"] == my_id]
 
             if not my_row.empty:
                 r = int(my_row["순위"].iloc[0])
@@ -1235,7 +1236,7 @@ def student_page():
                 total = len(df)
 
                 st.success(
-                    f"🙋‍♂️ 당신은 **{total}명 중 {r}위**입니다.\n\n"
+                    f"🙋‍♂️ 학생은 **{total}명 중 {r}위**입니다.\n\n"
                     f"📚 주간 평균 공부 시간: **{avg}시간** {arrow}"
                 )
 
