@@ -448,7 +448,6 @@ def student_page():
                 summary_df = pd.DataFrame(summary_rows)
 
                 result_df = result_df.merge(summary_df, on="학생ID", how="left")
-                df_rank = 
          
                 st.success("CSV 생성 완료!")
                 st.markdown("### 👀 CSV 미리보기 (상위 100행)")
