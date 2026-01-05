@@ -428,7 +428,7 @@ def student_page():
                               "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "공부총합"]
                 result_df = result_df[final_cols]
 
-                df_sorted = result_df.sort_values(by="공부종합")
+                df_sorted = result_df.sort_values(by="공부총합")
 
                 # 정렬된 인덱스를 활용해 순위 계산
                 df_sorted['순위'] = df_sorted.index + 1
@@ -1197,16 +1197,16 @@ def student_page():
                 try:
                     df_prev = pd.read_excel(prev_url)
                     prev_map = dict(
-                        zip(df_prev["학생ID"], df_prev["공부종합"])
+                        zip(df_prev["학생ID"], df_prev["공부총합"])
                     )
 
                     def diff_arrow(row):
                         prev = prev_map.get(row["학생ID"])
                         if prev is None:
                             return "—"
-                        if row["공부종합"] > prev:
+                        if row["공부총합"] > prev:
                             return "▲"
-                        if row["공부종합"] < prev:
+                        if row["공부총합"] < prev:
                             return "▼"
                         return "—"
 
@@ -1220,7 +1220,7 @@ def student_page():
         # ===============================
         # 표시용 테이블
         # ===============================
-            show_df = df[["순위", "익명", "공부종합", "변화"]]
+            show_df = df[["순위", "익명", "공부총합", "변화"]]
 
             st.dataframe(
                 show_df,
@@ -1236,7 +1236,7 @@ def student_page():
 
             if not my_row.empty:
                 r = int(my_row["순위"].iloc[0])
-                avg = round(my_row["공부종합"].iloc[0], 2)
+                avg = round(my_row["공부총합"].iloc[0], 2)
                 arrow = my_row["변화"].iloc[0]
                 total = len(df)
 
