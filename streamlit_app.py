@@ -104,7 +104,7 @@ def dataframe_to_xlsx_bytes(df, sheet_name="통계"):
 # 순위 강조용 
 def highlight_my_row(row, my_id):
     if str(row["학생ID"]).strip() == str(my_id).strip():
-        return ["background-color: #fff3cd; font-weight: bold"] * len(row)
+        return ["background-color: #993333; font-weight: bold"] * len(row)
     else:
         return [""] * len(row)
 
