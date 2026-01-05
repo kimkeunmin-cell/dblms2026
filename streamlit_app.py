@@ -181,6 +181,7 @@ def login_page():
         if user is not None:
             st.session_state["logged_in"] = True
             st.session_state["user_id"] = user_id
+            st.seesion_state["user_name"] = user[1]
             st.session_state["role"] = user.get("role", "student")
             st.rerun()
         else:
@@ -245,7 +246,7 @@ def student_page():
         </style>
     """, unsafe_allow_html=True)
     
-    st.title(f"학생 페이지 - {st.session_state['user_id']}")
+    st.title(f"학생 페이지 - {st.session_state['user_id'], st.session_state['user_name']}")
 
     # ===================== ADMIN =====================
     if st.session_state["role"] == "admin":
