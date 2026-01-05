@@ -9,6 +9,11 @@ import io
 # ================== 기본 설정 ==================
 st.set_page_config(page_title="학습 관리 시스템", layout="centered")
 
+# ================== GitHub 주간 순위 ==================
+BASE_GITHUB_URL = (
+    "https://raw.githubusercontent.com/깃허브ID/레포명/main/weekly_rank"
+)
+
 ACCOUNTS_FILE = "accounts.csv"
 SHEETS_FILE = "sheets.csv"
 
@@ -334,7 +339,7 @@ def student_page():
                             "end": pd.to_datetime(e)
                         })
                     df_weeks = pd.DataFrame(week_rows)
-
+                    
                     # 학생별 처리
                     for _, acc in students_df.iterrows():
                         user_id = acc["id"]
@@ -423,6 +428,14 @@ def student_page():
                               "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "공부총합"]
                 result_df = result_df[final_cols]
 
+                df_sorted = result_df.sort_values(by="공부종합")
+
+                # 정렬된 인덱스를 활용해 순위 계산
+                df_sorted['순위'] = df_sorted.index + 1
+
+                # 결과 출력
+                result_df = result_df.sort_values(by='학생ID")
+                
                 # 학생
                 summary_rows = []
 
@@ -435,7 +448,7 @@ def student_page():
                 summary_df = pd.DataFrame(summary_rows)
 
                 result_df = result_df.merge(summary_df, on="학생ID", how="left")
-
+                df_rank = 
          
                 st.success("CSV 생성 완료!")
                 st.markdown("### 👀 CSV 미리보기 (상위 100행)")
@@ -468,8 +481,8 @@ def student_page():
             st.rerun()
         return   # ← 이 줄이 핵심
     else:
-        tab1, tab2, tab3 = st.tabs(
-            ["📅 직접 기간 선택", "📊 주간별 리포트", "📈 주간 평균 변화"]
+        tab1, tab2, tab3, tab4 = st.tabs(
+            ["📅 직접 기간 선택", "📊 주간별 리포트", "📈 주간 평균 변화", "🏆 주간 공부 시간 순위"]
         )
 
     # ---------------- TAB 1 ----------------
@@ -985,7 +998,7 @@ def student_page():
         st.success(summary[0])
         st.success(summary[1])
 
-        # ---------------- TAB 3 ----------------
+    # ---------------- TAB 3 ----------------
     with tab3:
         st.subheader("주간별 평균 변화")
         if "df_csv" not in st.session_state:
@@ -1143,6 +1156,98 @@ def student_page():
 
         st.plotly_chart(fig, use_container_width=True)
 
+    # ---------------- TAB 4 ----------------
+    with tab4:
+        st.subheader("🏆 주간 공부 시간 순위")
+
+    # ===============================
+    # 주차 선택
+    # ===============================
+        week_options = {
+                "1주차 (3/1~3/7)": "주간 순위(2026-03-01, 2026-03-07).xlsx",
+                "2주차 (3/8~3/14)": "주간 순위(2026-03-08, 2026-03-14).xlsx",
+                "3주차 (3/15~3/21)": "주간 순위(2026-03-15, 2026-03-21).xlsx"
+        }
+
+        selected_week = st.selectbox(
+            "주간 선택",
+            list(week_options.keys())
+        )
+
+        file_name = week_options[selected_week]
+        file_url = f"{BASE_GITHUB_URL}/{file_name}"
+
+        try:
+        # ===============================
+        # 파일 로드
+        # ===============================
+            df = pd.read_excel(file_url)
+
+            if df.empty:
+                raise ValueError
+        # ===============================
+        # (3) 전 주 대비 변화
+        # ===============================
+            week_keys = list(week_options.keys())
+            cur_idx = week_keys.index(selected_week)
+
+            if cur_idx > 0:
+                prev_file = week_options[week_keys[cur_idx - 1]]
+                prev_url = f"{BASE_GITHUB_URL}/{prev_file}"
+
+                try:
+                    df_prev = pd.read_excel(prev_url)
+                    prev_map = dict(
+                        zip(df_prev["학생ID"], df_prev["공부종합"])
+                    )
+
+                    def diff_arrow(row):
+                        prev = prev_map.get(row["학생ID"])
+                        if prev is None:
+                            return "—"
+                        if row["공부종합"] > prev:
+                            return "▲"
+                        if row["공부종합"] < prev:
+                            return "▼"
+                        return "—"
+
+                    df["변화"] = df.apply(diff_arrow, axis=1)
+
+                except:
+                    df["변화"] = "—"
+            else:
+                df["변화"] = "—"
+
+        # ===============================
+        # 표시용 테이블
+        # ===============================
+            show_df = df[["순위", "익명", "공부종합", "변화"]]
+
+            st.dataframe(
+                show_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
+        # ===============================
+        # (1) 내 순위 강조
+        # ===============================
+            my_id = st.session_state.get("user_id")
+            my_row = df[df["학생ID"] == my_id]
+
+            if not my_row.empty:
+                r = int(my_row["순위"].iloc[0])
+                avg = round(my_row["공부종합"].iloc[0], 2)
+                arrow = my_row["변화"].iloc[0]
+                total = len(df)
+
+                st.success(
+                    f"🙋‍♂️ 당신은 **{total}명 중 {r}위**입니다.\n\n"
+                    f"📚 주간 평균 공부 시간: **{avg}시간** {arrow}"
+                )
+
+        except Exception:
+            st.info("📭 아직 주간 순위가 없습니다.")
     
     # 로그아웃
     if st.button("🔙 로그아웃"):
