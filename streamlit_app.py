@@ -188,7 +188,6 @@ def login_page():
 
 # ================== 학생 페이지 ==================
 def student_page():
-    st.error(f"🔥 실행 중인 파일 경로: {os.path.abspath(__file__)}")
     current_user_id = st.session_state["user_id"]
 
     df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
