@@ -181,7 +181,6 @@ def login_page():
         if user is not None:
             st.session_state["logged_in"] = True
             st.session_state["user_id"] = user_id
-            # st.seesion_state["user_name"] = user[1]
             st.session_state["role"] = user.get("role", "student")
             st.rerun()
         else:
@@ -189,6 +188,7 @@ def login_page():
 
 # ================== 학생 페이지 ==================
 def student_page():
+    student_study_summary = [] 
     st.markdown("""
         <style>
             /* 토글 버튼 컨테이너 */
@@ -246,8 +246,8 @@ def student_page():
         </style>
     """, unsafe_allow_html=True)
     
-    st.title(f"학생 페이지 - {st.session_state['user_id']+st.session_state['user_name']}")
-    st.write(user)
+    st.title(f"학생 페이지 - {st.session_state['user_id']}")
+
     # ===================== ADMIN =====================
     if st.session_state["role"] == "admin":
         tabs = st.tabs(["🧑‍🏫 관리자"])
@@ -330,7 +330,8 @@ def student_page():
                     # 학생별 처리
                     for _, acc in students_df.iterrows():
                         user_id = acc["id"]
-
+                        student_name = acc["name"]
+                        
                         row_sheet = df_sheets[df_sheets["id"] == user_id]
                         if row_sheet.empty:
                             continue
@@ -412,6 +413,30 @@ def student_page():
                               "어휘문법(시간)", "듣기(시간)", "독해(시간)", "영어기타(시간)", "영어합(시간)",
                               "통사(시간)", "통과(시간)", "탐구기타(시간)", "내신기타(시간)", "탐구합(시간)", "공부총합"]
                 result_df = result_df[final_cols]
+
+                # 학생별 주간 평균 공부량
+                df_study_rank = (
+                    result_df
+                    .groupby("학생ID", as_index=False)["공부총합"]
+                    .mean()
+                    .rename(columns={"공부총합": "주간평균공부시간"})
+                )
+
+                # account.csv에서 name 붙이기
+                df_study_rank = df_study_rank.merge(
+                    df_accounts[["id", "name"]],
+                    left_on="학생ID",
+                    right_on="id",
+                    how="left"
+                )
+
+                df_study_rank = (
+                    df_study_rank
+                    .sort_values("주간평균공부시간", ascending=False)
+                    .reset_index(drop=True)
+                )
+
+                df_study_rank["순위"] = df_study_rank.index + 1
 
                 # 학생
                 summary_rows = []
@@ -764,6 +789,28 @@ def student_page():
 
         st.plotly_chart(fig2, use_container_width=True)
 
+    st.divider()
+    st.subheader("📊 이번 기간 공부량 순위")
+
+    st.caption("※ 익명만 표시됩니다.")
+    st.dataframe(
+        df_study_rank[["순위", "name", "주간평균공부시간"]],
+        use_container_width=True
+    )
+    my_id = st.session_state.get("user_id")
+
+    my_row = df_study_rank[df_study_rank["학생ID"] == my_id]
+
+    if not my_row.empty:
+        my_rank = int(my_row["순위"].iloc[0])
+        my_avg = round(my_row["주간평균공부시간"].iloc[0], 2)
+        total_students = len(df_study_rank)
+
+        st.success(
+            f"🙋‍♂️ 당신의 순위는 **{total_students}명 중 {my_rank}위**입니다.\n\n"
+            f"📚 주간 평균 공부 시간: **{my_avg}시간**"
+        )
+
     # ---------------- TAB 2 ----------------
     with tab2:
         st.subheader("주간별 리포트")
@@ -975,6 +1022,8 @@ def student_page():
         st.success(summary[0])
         st.success(summary[1])
 
+
+    
     # ---------------- TAB 3 ----------------
     with tab3:
         st.subheader("주간별 평균 변화")
