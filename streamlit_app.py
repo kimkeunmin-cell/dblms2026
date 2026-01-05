@@ -245,8 +245,21 @@ def student_page():
             }
         </style>
     """, unsafe_allow_html=True)
-    
-    st.title(f"학생 페이지 - {st.session_state['user_id']}")
+
+    df_accounts = pd.read_csv(ACCOUNTS_FILE, dtype=str)
+    df_accounts["id"] = df_accounts["id"].str.strip()
+    # 현재 로그인한 학생 정보
+    current_user_id = st.session_state["user_id"]
+    row_me = df_accounts[df_accounts["id"] == current_user_id]
+
+    if not row_me.empty:
+        student_name = row_me.iloc[0]["name"]
+    else:
+        student_name = current_user_id  # fallback
+        
+    st.title("학생 페이지")
+    st.caption(f"👤 {student_name} · ID: {current_user_id}")
+    # st.title(f"학생 페이지 - {st.session_state['user_id']}")
 
     # ===================== ADMIN =====================
     if st.session_state["role"] == "admin":
