@@ -1238,7 +1238,7 @@ def student_page():
             styled = (
                 show_df
                 .style
-                .apply(highlight_my_row(my_row), axis=1)
+                .apply(highlight_my_row, axis=1)
                 .format({"공부총합": "{:.2f}"})
                 .hide(axis="columns", subset=["학생ID"])  # 🔥 여기서 숨김
             )
