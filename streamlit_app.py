@@ -995,8 +995,9 @@ def student_page():
         st.markdown("### 📝 이번 주 학습 요약")
 
         summary = make_student_weekly_summary(df_display, goals)
-        st.success(summary[0])
-        st.success(summary[1])
+        st.wrtie(summary)
+        # st.success(summary[0])
+        # st.success(summary[1])
 
     # ---------------- TAB 3 ----------------
     with tab3:
