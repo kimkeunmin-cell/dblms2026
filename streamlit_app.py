@@ -551,6 +551,7 @@ def student_page():
 
         try:
             df_csv = pd.read_csv(csv_url, engine='python', on_bad_lines='skip')
+            st.write('읽기 성공')
             # 컬럼 정규화
             df_csv.columns = (
                 df_csv.columns
@@ -560,14 +561,19 @@ def student_page():
                 .str.replace(' ','',regex=False)
                 .str.replace('　','',regex=False)
             )
+            st.write('컬럼 정규화 성공')
             df_csv["일시"] = pd.to_datetime(df_csv["일시"], errors="coerce")
+            st.write('일시 정제 성공')
             df_csv = df_csv.dropna(subset=["일시"])
+            st.write('일시 날리기 성공')
             st.session_state["df_csv"] = df_csv
+            st.write('df_csv 만들기 성공')
             goals = {}
             for var in ALL_VARS:
                 goals[var] = float(df_csv.get(var, [0])[0])
                 goals["수면합"]=float(df_csv.get("수면(시간)", [0])[0])  
                 goals["공부총합"]=float(df_csv.get("전체합(시간)", [0])[0])
+            st.write('목표 읽어내기 성공')
         except:
             st.warning("CSV 로드 실패")
 
@@ -995,9 +1001,8 @@ def student_page():
         st.markdown("### 📝 이번 주 학습 요약")
 
         summary = make_student_weekly_summary(df_display, goals)
-        st.wrtie(summary)
-        # st.success(summary[0])
-        # st.success(summary[1])
+        st.success(summary[0])
+        st.success(summary[1])
 
     # ---------------- TAB 3 ----------------
     with tab3:
