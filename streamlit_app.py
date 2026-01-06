@@ -1237,7 +1237,8 @@ def student_page():
 
             st.dataframe(
                 styled,
-                use_container_width=True
+                use_container_width=True,
+                hide_index=True
             )
             
             # ===============================
