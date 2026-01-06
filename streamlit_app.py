@@ -1230,7 +1230,7 @@ def student_page():
             show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
             my_id = str(st.session_state.get("user_id")).strip()
             my_row = show_df.loc[show_df["학생ID"] == my_id]
-            styled = show_df.style.apply(highlight_my_row(show_df, my_id), axis=1)
+            styled = show_df.style.apply(highlight_my_row(my_row, my_id), axis=1)
             display_df = styled.data.drop(columns=["학생ID"])
             st.write(styled)
             st.write(diplay_df)
