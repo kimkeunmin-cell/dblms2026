@@ -1219,31 +1219,48 @@ def student_page():
             show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
             my_id = str(st.session_state.get("user_id").strip())
             my_row = show_df.loc[show_df["학생ID"] == my_id]
+
+            display_df = show_df[["순위", "익명", "공부총합", "변화"]].copy()
+
+            def highlight_my_row(row):
+                if show_df.loc[row.name, "학생ID"] == my_id:
+                    return ["background-color: #993333; color: white; font-weight: bold"] * len(row)
+                return [""] * len(row)
+
+            styled = (
+                display_df
+                .style
+                .apply(highlight_my_row, axis=1)
+                .set_properties(**{"text-align": "center"})
+                .format({"공부총합": "{:.2f}"})
+            )
+
+            st.dataframe(
+                styled,
+                use_container_width=True
+            )
+            
             # ===============================
             # (1) 내 행 여부 컬럼
             # ===============================
-            show_df["_me"] = show_df["학생ID"] == my_id
+            # show_df["_me"] = show_df["학생ID"] == my_id
             # ===============================
             # (2) 보여줄 컬럼만
             # ===============================
-            display_df = show_df[["순위", "익명", "공부총합", "변화", "_me"]]
+            # display_df = show_df[["순위", "익명", "공부총합", "변화", "_me"]]
             # ===============================
             # (3) 출력 (강조는 emoji로)
             # ===============================
-            display_df["익명"] = display_df.apply(
-                lambda r: "👉 " + r["익명"] if r["_me"] else r["익명"],
-                axis=1
-            )
-            display_df["공부총합"] = display_df["공부총합"].round(2)
-            st.dataframe(
-                display_df.drop(columns=["_me"]),
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    col: st.column_config.Column(align="center")
-                    for col in ["순위", "익명", "공부총합", "변화"]
-                    if col in display_df.columns
-                })
+            # display_df["익명"] = display_df.apply(
+                # lambda r: "👉 " + r["익명"] if r["_me"] else r["익명"],
+                # axis=1
+            # )
+            # display_df["공부총합"] = display_df["공부총합"].round(2)
+            # st.dataframe(
+                # display_df.drop(columns=["_me"]),
+                # use_container_width=True,
+                # hide_index=True
+            # )
             
             if not my_row.empty:
                 r = int(my_row["순위"].iloc[0])
