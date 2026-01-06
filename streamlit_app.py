@@ -1240,7 +1240,6 @@ def student_page():
                 .style
                 .apply(highlight_my_row, axis=1)
                 .format({"공부총합": "{:.2f}"})
-                .hide(axis="columns", subset=["학생ID"])  # 🔥 여기서 숨김
             )
 
             # ===============================
@@ -1249,7 +1248,10 @@ def student_page():
             st.dataframe(
                 styled,
                 use_container_width=True,
-                hide_index=True
+                hide_index=True,
+                column_config={
+                    "학생ID": st.column_config.Column(hidden=True)
+                }
             )
             
             if not my_row.empty:
@@ -1260,7 +1262,7 @@ def student_page():
                 
                 st.success(
                     f"🙋‍♂️ 학생은 **{total}명 중 {r}위**입니다.\n\n"
-                    f"📚 주간 평균 공부 시간: **{avg}시간** 변화 : {arrow}"
+                    f"📚 주간 평균 공부 시간: **{avg}시간** (변화 : {arrow})"
                 )
 
         except Exception:
