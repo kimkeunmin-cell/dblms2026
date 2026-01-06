@@ -1230,6 +1230,9 @@ def student_page():
             show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
             my_id = st.session_state.get("user_id").strip()
             my_row = show_df.loc[show_df["학생ID"] == my_id]
+            st.write(my_id)
+            st.write(show_df["학생ID"]
+            show_df = show_df.drop(columns=["학생ID"])
             styled_df = (
                 show_df
                 .style
@@ -1237,10 +1240,11 @@ def student_page():
                 .format({"공부총합":"{:.2f}"})
             )
             st.dataframe(
-                styled_df.drop(columns=["학생ID"]),
+                styled_df,
                 use_container_width=True,
                 hide_index=True
             )
+            
             if not my_row.empty:
                 r = int(my_row["순위"].iloc[0])
                 avg = round(my_row["공부총합"].iloc[0], 2)
