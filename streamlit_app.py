@@ -174,7 +174,7 @@ def check_login(user_id, user_pw):
     return row.iloc[0]
 
 def login_page():
-    st.title("휘문고등학교/n데이터 기반 학습 관리 시스템(DB-LMS)/n로그인")
+    st.title("휘문고 DB-LMS 로그인")
 
     with st.form("login_form"):
         user_id = st.text_input("아이디")
