@@ -1240,27 +1240,10 @@ def student_page():
                 use_container_width=True,
                 hide_index=True,
                 column_config={
-                    "순위": st.column_config.NumberColumn(
-                    "순위",
-                    help="주간 순위",
-                    format="%d",
-                    align="center"
-                ),
-                    "익명": st.column_config.TextColumn(
-                    "익명",
-                    align="center"
-                ),
-                    "공부총합": st.column_config.NumberColumn(
-                    "공부총합",
-                    format="%.2f",
-                    align="center"
-                ),
-                    "변화": st.column_config.NumberColumn(
-                    "변화",
-                    format="%.2f",
-                    align="center"
-                ),
-            })
+                    col: st.column_config.Column(align="center")
+                    for col in ["순위", "익명", "공부총합", "변화"]
+                    if col in display_df.columns
+                })
             
             if not my_row.empty:
                 r = int(my_row["순위"].iloc[0])
