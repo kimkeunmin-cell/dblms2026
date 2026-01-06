@@ -1228,9 +1228,11 @@ def student_page():
         # (1) 내 순위 강조
         # ===============================
             show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
-            # my_id = st.session_state.get("user_id").strip()
             my_id = str(st.session_state.get("user_id")).strip()
             my_row = show_df.loc[show_df["학생ID"] == my_id]
+            st.write(my_id)
+            st.write(show_df["학생ID"])
+            st.write(my_row)
             styled_df = (
                 show_df
                 .style
