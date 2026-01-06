@@ -1231,7 +1231,7 @@ def student_page():
             my_id = st.session_state.get("user_id").strip()
             my_row = show_df.loc[show_df["학생ID"] == my_id]
             st.write(my_id)
-            st.write(show_df["학생ID"]
+            st.write(show_df["학생ID"])
             show_df = show_df.drop(columns=["학생ID"])
             styled_df = (
                 show_df
