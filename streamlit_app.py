@@ -1240,29 +1240,7 @@ def student_page():
                 use_container_width=True,
                 hide_index=True
             )
-            
-            # ===============================
-            # (1) 내 행 여부 컬럼
-            # ===============================
-            # show_df["_me"] = show_df["학생ID"] == my_id
-            # ===============================
-            # (2) 보여줄 컬럼만
-            # ===============================
-            # display_df = show_df[["순위", "익명", "공부총합", "변화", "_me"]]
-            # ===============================
-            # (3) 출력 (강조는 emoji로)
-            # ===============================
-            # display_df["익명"] = display_df.apply(
-                # lambda r: "👉 " + r["익명"] if r["_me"] else r["익명"],
-                # axis=1
-            # )
-            # display_df["공부총합"] = display_df["공부총합"].round(2)
-            # st.dataframe(
-                # display_df.drop(columns=["_me"]),
-                # use_container_width=True,
-                # hide_index=True
-            # )
-            
+                        
             if not my_row.empty:
                 r = int(my_row["순위"].iloc[0])
                 avg = round(my_row["공부총합"].iloc[0], 2)
