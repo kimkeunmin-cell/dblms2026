@@ -1216,38 +1216,26 @@ def student_page():
         # ===============================
             show_df = df[["학생ID","순위", "익명", "공부총합", "변화"]].copy()
             show_df = show_df.sort_values(["순위", "익명"], ascending=[True, True])
-
-        # ===============================
-        # (1) 내 순위 강조
-        # ===============================
-            show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
-            my_id = str(st.session_state.get("user_id")).strip()
-            my_row = show_df.loc[show_df["학생ID"] == my_id]
-
             # ===============================
-            # (1) 강조 함수 (my_id는 클로저)
+            # (1) 내 행 여부 컬럼
             # ===============================
-            def highlight_my_row(row):
-                if row["학생ID"] == my_id:
-                    return ["background-color: #993333; font-weight: bold"] * len(row)
-                return [""] * len(row)
-
+            show_df["_me"] = show_df["학생ID"] == my_id
             # ===============================
-            # (2) 강조용 컬럼 추가
+            # (2) 보여줄 컬럼만
             # ===============================
-            show_df["_is_me"] = show_df["학생ID"] == my_id
-
+            display_df = show_df[["순위", "익명", "공부총합", "변화", "_me"]]
             # ===============================
-            # (3) 출력
+            # (3) 출력 (강조는 emoji로)
             # ===============================
+            display_df["익명"] = display_df.apply(
+                lambda r: "👉 " + r["익명"] if r["_me"] else r["익명"],
+                axis=1
+            )
+            display_df["공부총합"] = display_df["공부총합"].round(2)
             st.dataframe(
-                show_df.drop(columns=["_is_me"]),
+                display_df.drop(columns=["_me"]),
                 use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "학생ID": st.column_config.Column(hidden=True),
-                },
-                row_highlight=show_df["_is_me"]
+                hide_index=True
             )
             
             if not my_row.empty:
