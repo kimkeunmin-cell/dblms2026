@@ -1228,13 +1228,9 @@ def student_page():
         # (1) 내 순위 강조
         # ===============================
             show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
-            my_id = st.session_state.get("user_id").strip()
-            show_df["학생ID"]=show_df["학생ID"].astype(int)
+            # my_id = st.session_state.get("user_id").strip()
+            my_id = str(st.session_state.get("user_id")).strip()
             my_row = show_df.loc[show_df["학생ID"] == my_id]
-            show_df = show_df.drop(columns=["학생ID"])
-            st.write(my_id)
-            st.write(my_row)
-            st.write(show_df)
             styled_df = (
                 show_df
                 .style
@@ -1242,7 +1238,7 @@ def student_page():
                 .format({"공부총합":"{:.2f}"})
             )
             st.dataframe(
-                styled_df,
+                styled_df.drops(columns=["학생ID"]),
                 use_container_width=True,
                 hide_index=True
             )
