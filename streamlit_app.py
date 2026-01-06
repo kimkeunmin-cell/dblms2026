@@ -1216,6 +1216,9 @@ def student_page():
         # ===============================
             show_df = df[["학생ID","순위", "익명", "공부총합", "변화"]].copy()
             show_df = show_df.sort_values(["순위", "익명"], ascending=[True, True])
+            show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
+            my_id = str(st.session_state.get("user_id").strip())
+            my_row = show_df.loc[show_df["학생ID"] == my_id]
             # ===============================
             # (1) 내 행 여부 컬럼
             # ===============================
