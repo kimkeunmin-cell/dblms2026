@@ -1232,6 +1232,8 @@ def student_page():
             my_row = show_df.loc[show_df["학생ID"] == my_id]
             styled = show_df.style.apply(highlight_my_row, axis=1)
             display_df = styled.data.drop(columns=["학생ID"])
+            st.write(styled)
+            st.write(diplay_df)
             st.dataframe(
                 display_df.format({"공부총합":"{:.2f}"}),
                 use_container_width=True,
