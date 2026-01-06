@@ -569,6 +569,9 @@ def student_page():
             st.session_state["df_csv"] = df_csv
             st.write('df_csv 만들기 성공')
             goals = {}
+            st.write(ALL_VARS)
+            st.write(float(df_csv.get("수면(시간)", [0])[0]))
+            st.write(float(df_csv.get("전체합(시간)", [0])[0]))
             for var in ALL_VARS:
                 goals[var] = float(df_csv.get(var, [0])[0])
                 goals["수면합"]=float(df_csv.get("수면(시간)", [0])[0])  
