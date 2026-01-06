@@ -1229,7 +1229,7 @@ def student_page():
         # ===============================
             show_df["학생ID"]=show_df["학생ID"].astype(str).str.strip()
             my_id = st.session_state.get("user_id").strip()
-            my_row = df.loc[df["학생ID"] == my_id]
+            my_row = show_df.loc[show_df["학생ID"] == my_id]
             styled_df = (
                 show_df
                 .style
@@ -1237,7 +1237,7 @@ def student_page():
                 .format({"공부총합":"{:.2f}"})
             )
             st.dataframe(
-                styled_df.hide(axis="columns", subset=["학생ID"]),
+                styled_df.drop(columns=["학생ID"]),
                 use_container_width=True,
                 hide_index=True
             )
@@ -1246,7 +1246,7 @@ def student_page():
                 avg = round(my_row["공부총합"].iloc[0], 2)
                 arrow = my_row["변화"].iloc[0]
                 total = len(df)
-
+                
                 st.success(
                     f"🙋‍♂️ 학생은 **{total}명 중 {r}위**입니다.\n\n"
                     f"📚 주간 평균 공부 시간: **{avg}시간** {arrow}"
