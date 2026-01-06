@@ -1233,25 +1233,21 @@ def student_page():
                 return [""] * len(row)
 
             # ===============================
-            # (2) 스타일 적용
+            # (2) 강조용 컬럼 추가
             # ===============================
-            styled = (
-                show_df
-                .style
-                .apply(highlight_my_row, axis=1)
-                .format({"공부총합": "{:.2f}"})
-            )
+            show_df["_is_me"] = show_df["학생ID"] == my_id
 
             # ===============================
             # (3) 출력
             # ===============================
             st.dataframe(
-                styled,
+                show_df.drop(columns=["_is_me"]),
                 use_container_width=True,
                 hide_index=True,
                 column_config={
-                    "학생ID": st.column_config.Column(hidden=True)
-                }
+                    "학생ID": st.column_config.Column(hidden=True),
+                },
+                row_highlight=show_df["_is_me"]
             )
             
             if not my_row.empty:
